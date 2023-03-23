@@ -1,0 +1,37 @@
+<project name>
+
+money owed tracker
+
+Short description: 1 sentence
+
+website similar to splitwise where users can create groups to track shared expenses. 
+
+Long description: several sentence, with details
+1)   The website will act as a way to track how much money users owe to other users.
+2)   There will be an option to create new groups for expenses shared by multiple othe users as well as for one other user.
+3)   Users will be able to see the total amount of money in each currency they owe / are owed in a specific group and overall.
+
+Steps:
+1)   create a table in the database with all of the users including columns for: username, password, groups they are involed in, status in groups (ie been requested to join, accepted, rejected), etc
+2)   create a home page with a login / register
+3)   create a logged-in home page displaying all groups user is in as well as requested groups 
+
+Technical description: 
+
+[1] first feature (login / register page):
+●   when register, the database will be checked that the username is available
+●   when logging in, the database will be checked if the username and password match a specific user 
+●   the register / login buttons will be disabled until all the relevent fields are filled in 
+
+[2] second feature (creating new groups):
+●   users can create a new group by adding the usernames of other users - these requests will be saved in a table in the database 
+●   the other users must 'respond' to the group request prior to any users being able to add expenses in the group by 'acepting' or 'rejecting' - this will be saved in a table in the database
+●   once all users have responded, a new group will be created with all the users that accepted the request. 
+
+[3] third feature (adding new expenses):
+●   when adding new expenses, there will be options for a short description of the purchase, the price, the currency, those involved in the purchase 
+●   all those in the group can subsequently edit this expense 
+●   all expenses will appear on each user in the group's page 
+
+[4] minor feature - only if you have time (currency exchange feature):
+●    using an api
