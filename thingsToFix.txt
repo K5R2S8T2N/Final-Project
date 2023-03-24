@@ -1,0 +1,10 @@
+pages to create:
+not logged in...
+- register 
+- login 
+- home 
+- groups 
+- create
+- requests 
+
+- check group name not taken 
