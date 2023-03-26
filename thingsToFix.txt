@@ -7,4 +7,5 @@ not logged in...
 - create
 - requests 
 
-- check group name not taken 
+- back button on create new group (are you sure popup)
+- footer

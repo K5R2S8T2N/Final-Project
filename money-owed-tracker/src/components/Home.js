@@ -12,6 +12,7 @@ class Home extends React.Component{
         const signedIn = localStorage.getItem("signedin");
         console.log(signedIn);
     }
+    
     render(){
         const checkSignedIn = () => {
             if (this.state.signedIn != null) {
