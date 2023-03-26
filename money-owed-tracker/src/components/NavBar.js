@@ -11,6 +11,7 @@ class NavBar extends React.Component{
 
     logout = () => {
         localStorage.removeItem("signedin");
+        localStorage.removeItem("signedinID");
         this.setState({signedIn: localStorage.getItem("signedin")});
         window.location.href = '/';
     }

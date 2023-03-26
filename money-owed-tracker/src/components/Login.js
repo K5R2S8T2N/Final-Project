@@ -74,7 +74,7 @@ class Login extends React.Component{
                 e.target.login.disabled = true;
                 window.location.href = '/';
                 localStorage.setItem("signedin", data.user);
-                
+                localStorage.setItem("signedinID", data.id);
             }
         })
         .catch((err) => console.log(err))
@@ -89,6 +89,7 @@ class Login extends React.Component{
 
     logout = () => {
         localStorage.removeItem("signedin");
+        localStorage.removeItem("signedinID");
         this.setState({signedIn: localStorage.getItem("signedin")});
     }
 
