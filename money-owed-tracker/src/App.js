@@ -1,6 +1,5 @@
-import logo from './logo.svg';
 import './App.css';
-import { Route, Link, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Register from './components/Register';
 import Login from './components/Login';
 import Home from './components/Home';
@@ -8,6 +7,9 @@ import NavBar from './components/NavBar';
 import Groups from './components/Groups';
 import Create from './components/Create';
 import Requests from './components/Requests';
+import OpenGroup from './components/OpenGroup';
+import OpenPendingGroup from './components/OpenPendingGroup.js';
+import AddExpense from './components/AddExpense';
 
 function App() {
 
@@ -21,6 +23,9 @@ function App() {
         <Route path='/groups' element={<Groups />}></Route>
         <Route path='/create' element={<Create />}></Route>
         <Route path='/requests' element={<Requests />}></Route>
+        <Route path='/opengroup' element={<OpenGroup />}></Route>
+        <Route path='/openpending' element={<OpenPendingGroup />}></Route>
+        <Route path='/add' element={<AddExpense />}></Route>
       </Routes>
     </div>
   );

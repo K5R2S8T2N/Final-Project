@@ -99,7 +99,12 @@ class Register extends React.Component{
     logout = () => {
         localStorage.removeItem("signedin");
         localStorage.removeItem("signedinID");
+        localStorage.removeItem("groupName");
+        localStorage.removeItem("groupCreator");
+        localStorage.removeItem("groupStatus");
+        localStorage.removeItem("groupMembers");
         this.setState({signedIn: localStorage.getItem("signedin")});
+        window.location.href = '/register';
     }
 
     render(){
