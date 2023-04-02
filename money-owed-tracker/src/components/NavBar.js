@@ -12,6 +12,10 @@ class NavBar extends React.Component{
     logout = () => {
         localStorage.removeItem("signedin");
         localStorage.removeItem("signedinID");
+        localStorage.removeItem("groupName");
+        localStorage.removeItem("groupCreator");
+        localStorage.removeItem("groupStatus");
+        localStorage.removeItem("groupMembers");
         this.setState({signedIn: localStorage.getItem("signedin")});
         window.location.href = '/';
     }
@@ -21,10 +25,18 @@ class NavBar extends React.Component{
         const checkSignedIn = () => {
         if (this.state.signedIn != null) {
             return (
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <li style={{ marginLeft: "5px", marginRight: "5px"}}>{this.state.signedIn}</li>
-                    <li style={{ marginLeft: "5px", marginRight: "5px"}} onClick={this.logout}><Link to="/">Logout</Link></li>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginLeft: "200px", marginRight: "200px" }}>
+                        <li style={{ marginLeft: "5px", marginRight: "5px"}}><Link to="/groups">All Groups</Link></li>
+                        <li style={{ marginLeft: "5px", marginRight: "5px"}}><Link to="/create">Create New Group</Link></li>
+                        <li style={{ marginLeft: "5px", marginRight: "5px"}}><Link to="/requests">Group Requests</Link></li>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <li style={{ marginLeft: "5px", marginRight: "5px"}}>{this.state.signedIn}</li>
+                        <li style={{ marginLeft: "5px", marginRight: "5px"}} onClick={this.logout}><Link to="/">Logout</Link></li>
+                    </div>
                 </div>
+                
                 
             );
         } else {
@@ -40,7 +52,7 @@ class NavBar extends React.Component{
 
         return (
             <div className="App">
-                <ul style={{ listStyle: "none", display: "flex", justifyContent: "space-around" }}>
+                <ul style={{ listStyle: "none", display: "flex", justifyContent: "center" }}>
                     <li><Link to="/">Home</Link></li>
                     {checkSignedIn()}
                 </ul>

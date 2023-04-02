@@ -8,11 +8,17 @@ class Home extends React.Component{
             signedIn: localStorage.getItem("signedin"),
         }
     }
+    notConsoled = true
     componentDidMount(){
         const signedIn = localStorage.getItem("signedin");
-        console.log(signedIn);
+        
+        if(this.notConsoled){
+            this.notConsoled = false;
+            console.log(signedIn);
+        }
+        
     }
-    
+
     render(){
         const checkSignedIn = () => {
             if (this.state.signedIn != null) {

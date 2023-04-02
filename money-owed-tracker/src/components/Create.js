@@ -1,5 +1,5 @@
 import React from "react";
-
+import BackToHomePage from "./BackToHomePage";
 class Create extends React.Component{
     constructor(props){
         super(props);
@@ -8,8 +8,13 @@ class Create extends React.Component{
             members: [`${localStorage.getItem("signedin")}`],
         }
     }
+    notRun = true
+
     componentDidMount(){
-        this.checkDetailsFilledForCreate();
+        if(this.notRun){
+            this.checkDetailsFilledForCreate(this.notRun);
+        }
+        
     }
 
     addingMember = async (e) => {
@@ -148,6 +153,7 @@ class Create extends React.Component{
     }
 
     checkDetailsFilledForCreate = () => {
+        this.notRun = false;
         const newGroupName = document.getElementById('newGroupName');
         const createGroupBtn = document.getElementById('createGroup');
         const membersArray = this.state.members;
@@ -193,12 +199,17 @@ class Create extends React.Component{
         .catch((err) => console.log(err))
     }
 
+    backMessage = () => {
+
+    }
+
     render(){
         const checkSignedIn = () => {
             if (this.state.signedIn != null) {
                 return (
-                    <div>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                         <h1>Create New Group</h1>
+
                         <div>
                             <h3>Group Members</h3>
                             <div id="newGroupMembersList">{
@@ -219,6 +230,7 @@ class Create extends React.Component{
                                 </div>
                             </form>
                         </div>
+
                         <div>
                             <h3>Group Name</h3>
                             <h4 id='newGroupName'> </h4>
@@ -228,8 +240,16 @@ class Create extends React.Component{
                                 <p id='newGroupNameMessage'></p>
                             </form>
                         </div>
-                        <input name='create' type='submit' id='createGroup' value='Create Group' onClick={this.createGroup}/>
-                        <p id="createMessage"></p>
+
+                        <div>
+                            <input name='create' type='submit' id='createGroup' value='Create Group' onClick={this.createGroup}/>
+                            <p id="createMessage"></p>
+                        </div>
+                        
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <BackToHomePage />
+                        </div>
+                       
                     </div>
                     
                 );

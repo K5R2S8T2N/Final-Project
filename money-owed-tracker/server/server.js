@@ -216,9 +216,8 @@ app.post('/loadGroups', async (req, res) => {
     const {userId} = req.body;
     const groupsArray = [];
     db('groups')
-        .where('member_id', userId)
-        .andWhere('status', 'creator')
-        .orWhere('status', 'accepted')
+        .where({member_id: userId, status: 'accepted'})
+        .orWhere({member_id: userId, status: 'creator'})
         .then((data) => { 
             data.forEach((group) => {
                 const newGroup = [group.group_name, group.creator];
@@ -237,12 +236,222 @@ app.post('/getGroupStatus', async (req, res) => {
         .then((group) => { 
             const allUsersStatusArr = [];
             group.forEach((member) => {
-                // const userInfo = [member.member_id, member.status]
                 allUsersStatusArr.push(member.status);
             })
             res.send({usersStatusInfo: allUsersStatusArr});
         })
 });
+
+// for deleting invalid groups 
+app.post('/deleteInvalidGroup', (req, res) => {
+    const {groupName, groupCreator} = req.body; 
+    db('groups')
+        .where({group_name: groupName, creator: groupCreator})
+        .del(['group_id', 'group_name', 'status', 'creator', 'member_id'])
+        .then(members =>
+            res.send({membersToRemove: members})
+        )
+});
+
+// for opening group page 
+app.post('/openGroup', (req, res) => {
+    const {groupName, groupCreator, status} = req.body;
+    if (status === 'pending'){
+        res.send({submission: 'pending'});
+    } else {
+        res.send({submission: 'active'});
+    }
+    
+});
+
+app.post('/loadSpecificGroup', (req, res) => {
+    const {userId, groupName, groupCreator, groupStatus} = req.body;
+    if (groupStatus === 'pending'){
+        db('groups')
+            .where({group_name: `${groupName}`, creator: `${groupCreator}`, status: 'requested'})
+            .then((members) => {
+                let count = 0;
+                const pendingUsersArr = [];
+                members.forEach ((member, index, arr) => {
+                    db('users')
+                        .where({user_id: `${member.member_id}`})
+                        .then((user) => {
+                            pendingUsersArr.push(user[0].username)
+                            count++;
+
+                            if(count == arr.length){
+                                res.send({pendingUsersArr: pendingUsersArr, status: "pending", name: `${groupName}`});
+                            }
+                        })
+                })
+            })
+    } else if (groupStatus === 'active'){
+        console.log('page is active');
+        // get group members
+        db('groups')
+        .where({group_name: `${groupName}`, creator: `${groupCreator}`, status: 'accepted'})
+        .orWhere({group_name: `${groupName}`, creator: `${groupCreator}`, status: 'creator'})
+        .then((members) => {
+            let count = 0;
+            const UsersArr = [];
+            members.forEach ((member, index, arr) => {
+                db('users')
+                    .where({user_id: `${member.member_id}`})
+                    .then((user) => {
+                        UsersArr.push(user[0].username)
+                        count++;
+
+                        if(count == arr.length){
+                            res.send({UsersArr: UsersArr, status: "active", name: `${groupName}`, creator: `${groupCreator}`});
+                        }
+                    });
+            });
+        });
+    } else {
+        res.send({status: 'no group selected'})
+    }
+});
+
+// for making sure group does not contain expense name yet 
+app.post('/checkExpenseName', (req, res) => {
+    const {groupName, expenseName, groupCreator} = req.body;
+    db('expenses')
+        .where({current_group_name: `${groupName}`, expense: `${expenseName}`, current_group_creator: `${groupCreator}`})
+        .then((groupDetails) => {
+            if(groupDetails.length !== 0){
+                console.log('expense name already taken');
+                res.send({status: 'unavailable', message: `Expense "${expenseName}" already exists`});
+            } else {
+                res.send({status: 'available'});
+            }
+        })
+});
+
+app.post('/addToExpenseTable', (req, res) => {
+    const {groupName, creator, expense, amount, currency, buyer, involvedArr} = req.body;
+    let count = 0;
+    let buyerInvolved = true; 
+    let needToInsertBuyer = false;
+    if (!involvedArr.includes(buyer)){
+        buyerInvolved = false;
+        needToInsertBuyer = true;
+    }
+
+    involvedArr.forEach((user, index, arr) => {
+        if( user === buyer){
+            db('expenses')
+            .insert({
+                current_group_name: groupName,
+                current_group_creator: creator,
+                expense: expense,
+                amount_to_give: 0,
+                amount_to_recieve: amount - (amount/arr.length),
+                amount_overall: amount,
+                currency: currency,
+                buyer: buyer,
+                receiver: user,
+                buyer_involved: buyerInvolved,
+            })
+            .then((data) => {
+                if(needToInsertBuyer){
+                    needToInsertBuyer = false;
+                    db('expenses')
+                        .insert({
+                            current_group_name: groupName,
+                            current_group_creator: creator,
+                            expense: expense,
+                            amount_to_give: 0,
+                            amount_to_recieve: amount,
+                            amount_overall: amount,
+                            currency: currency,
+                            buyer: buyer,
+                            receiver: buyer,
+                            buyer_involved: buyerInvolved,
+                        })
+                        .then(() => { 
+                            count++;
+                            if(count == arr.length){
+                                res.send({result: 'done'});
+                            }
+                        })      
+                } else {
+                    count++;
+                    if(count == arr.length){
+                        res.send({result: 'done'});
+                    }
+                }
+            });
+        } else {
+            db('expenses')
+            .insert({
+                current_group_name: groupName,
+                current_group_creator: creator,
+                expense: expense,
+                amount_to_give: amount/arr.length,
+                amount_to_recieve: 0,
+                amount_overall: amount,
+                currency: currency,
+                buyer: buyer,
+                receiver: user,
+                buyer_involved: buyerInvolved,
+            })
+            .then((data) => {
+                if(needToInsertBuyer){
+                    needToInsertBuyer = false;
+                    db('expenses')
+                        .insert({
+                            current_group_name: groupName,
+                            current_group_creator: creator,
+                            expense: expense,
+                            amount_to_give: 0,
+                            amount_to_recieve: amount,
+                            amount_overall: amount,
+                            currency: currency,
+                            buyer: buyer,
+                            receiver: buyer,
+                            buyer_involved: buyerInvolved,
+                        })
+                        .then(() => { 
+                            count++;
+                            if(count == arr.length){
+                                res.send({result: 'done'});
+                            }
+                        })   
+                } else {
+                    count++;
+                    if(count == arr.length){
+                        res.send({result: 'done'});
+                    }
+                }
+            });
+        }
+    })
+});
+
+// for loading group expense on specific group page 
+app.post('/loadSpecificExpensesForGroup', (req, res) => {
+    const {signedIn, groupName, groupCreator} = req.body;
+    db('expenses')
+        .where({current_group_name: `${groupName}`, current_group_creator: `${groupCreator}`})
+        .then((data) => {
+            const Expensesobj = {};
+            data.forEach((entry) => {
+                if (!(entry.expense in Expensesobj)) {
+                    Expensesobj[entry.expense] = {
+                        amount: entry.amount_overall,
+                        currency: entry.currency,
+                        buyer: entry.buyer,
+                        buyerInvolved: entry.buyer_involved,
+                        involved: [entry.receiver]
+                    }
+                } else {
+                    Expensesobj[entry.expense].involved.push(entry.receiver);
+                }
+            })
+            res.send({overview: data, Expensesobj: Expensesobj});
+        })
+});
+
 
 // app.use('/test', async (req, res) => {
 //     const data = await db('users').select();

@@ -11,11 +11,16 @@ class Requests extends React.Component{
             signedInId: localStorage.getItem("signedinID"),
         }
     }
+    notRun = true;
     componentDidMount(){
-        this.checkRequests();
+        if(this.notRun){
+            this.checkRequests();
+        }
+        
     }
 
     checkRequests = async () => {
+        this.notRun = false;
         const response = await fetch('http://localhost:3000/loadRequests', {
             method: 'POST',
             headers: {

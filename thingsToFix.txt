@@ -7,5 +7,7 @@ not logged in...
 - create
 - requests 
 
-- back button on create new group (are you sure popup)
 - footer
+- add all groups dropdown in navbar
+- add amount slider for expenses display
+- rendering top table when not expenses (ie not currencies)

@@ -8,10 +8,16 @@ class Groups extends React.Component{
             signedInId: localStorage.getItem("signedinID"),
         }
     }
+    notRun = true;
+
     componentDidMount(){
-        this.checkGroups();
+        if(this.notRun){
+            this.checkGroups();
+        }
+        
     }
     checkGroups = async () => {
+        this.notRun = false;
         const response = await fetch('http://localhost:3000/loadGroups', {
             method: 'POST',
             headers: {
@@ -36,8 +42,13 @@ class Groups extends React.Component{
                 }),
             });
             const getGroupStatusJ = await getGroupStatus.json();
-            console.log(getGroupStatusJ.usersStatusInfo);
-            let stat = 'active';
+            let stat = 'invalid';
+
+            getGroupStatusJ.usersStatusInfo.forEach( (status) => {
+                if (status === 'accepted'){
+                    stat = 'active';
+                }
+            });
             getGroupStatusJ.usersStatusInfo.forEach( (status) => {
                 if (status === 'requested'){
                     stat = 'pending';
@@ -48,9 +59,63 @@ class Groups extends React.Component{
             if(groupsProcessed === arr.length){
                 this.setState({groupsList: groupsInfo});
             }
-    })
-        
-        
+        });
+    }
+    openGroup = (e) => {
+        const groupInfoArr = e.target.id.split('-');
+        if(groupInfoArr[3] === 'pending' || groupInfoArr[3] === 'active'){
+            localStorage.setItem("groupName", groupInfoArr[1]);
+            localStorage.setItem("groupCreator", groupInfoArr[2]);
+            localStorage.setItem("groupStatus", groupInfoArr[3]);
+            fetch('http://localhost:3000/openGroup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    groupName: groupInfoArr[1],
+                    groupCreator: groupInfoArr[2],
+                    status: groupInfoArr[3],
+                }),
+            })
+            .then((res) => {
+                return res.json()
+            })
+            .then((data) => {
+                if(data.submission === "pending"){
+                    window.location.href = '/openpending';
+                } else{
+                    window.location.href = '/opengroup';
+                }
+            })
+            .catch((err) => console.log(err))
+        } else {
+            fetch('http://localhost:3000/deleteInvalidGroup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    groupName: groupInfoArr[1],
+                    groupCreator: groupInfoArr[2],
+                }),
+            })
+            .then((res) => {
+                return res.json()
+            })
+            .then((data) => {
+                const newGroupsList = this.state.groupsList;
+                newGroupsList.forEach((group, index) => {
+                    if(group[0] === data.membersToRemove[0].group_name && group[1] === data.membersToRemove[0].creator){
+                        newGroupsList.splice(index, 1);
+                    }
+                });
+                this.setState({groupsList: newGroupsList});
+
+            })
+            .catch((err) => console.log(err))
+            
+        }
     }
 
     render(){
@@ -68,7 +133,7 @@ class Groups extends React.Component{
                                             <p> made by: {group[1]}</p>
                                             <p> status: {group[2]}</p>
                                         </div>
-                                        <button id='groupsSeeMoreBtn'>see more</button>
+                                        <button id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`} className='groupOpenBtn' onClick={this.openGroup}>{group[2] === 'invalid' ? 'delete' : 'open'}</button>
                                     </div>
                                 )
                             })
