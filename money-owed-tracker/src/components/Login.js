@@ -1,5 +1,9 @@
 import React from "react";
-
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import PersonIcon from '@mui/icons-material/Person';
+import LockIcon from '@mui/icons-material/Lock';
+import AccountBoxIcon from '@mui/icons-material/AccountBox';
 
 class Login extends React.Component{
     constructor(props){
@@ -10,6 +14,7 @@ class Login extends React.Component{
         }
     }
     passwordVisiblilty = (e) => {
+        e.stopPropagation();
         e.preventDefault();
         const password = document.getElementById('loginPassword');
         if (this.state.passwordHidden){
@@ -43,6 +48,10 @@ class Login extends React.Component{
         if(e.keyCode == 32){
             message.innerHTML = `${e.target.name} cannot contain spaces`;
             e.target.value = e.target.value.split(' ').join('');
+        }
+        if(e.key ==='-'){
+            message.innerHTML = `${e.target.name} cannot contain hyphens`;
+            e.target.value = e.target.value.split('-').join('');
         }
     }
 
@@ -103,18 +112,27 @@ class Login extends React.Component{
             if (this.state.signedIn === null) {
                 return (
                 <div>
+                    <AccountBoxIcon style={{fontSize: '160px'}}/>
                     <h1>Login</h1>
                     <form onInput={this.checkFilled} onSubmit={this.login} >
                         <div>
-                            <label>Username</label>
+                            <div className="labelWithIcon" style={{margin: '10px'}}>
+                                < PersonIcon style={{marginRight: '4px', fontSize: '20px'}}/>
+                                <label>Username</label>
+                            </div>
                             <input type='text' id='loginUsername' onKeyUp= {this.spacesMessage} onKeyDown={this.prevent} name='username'></input>
                         </div>
                         <div>
-                            <label>Password</label>
-                            <input type='password' id='loginPassword' onKeyUp= {this.spacesMessage} onKeyDown={this.prevent} name='password'></input>
-                            <button onClick = {this.passwordVisiblilty}>{this.state.passwordHidden? "hidden" : "visible"}</button>
+                            <div className="labelWithIcon" style={{margin: '10px'}}>
+                                < LockIcon style={{marginRight: '4px', fontSize: '16px'}}/>
+                                <label>Password</label>
+                            </div>
+                            <div style={{display: 'flex', justifyContent: 'center'}}>
+                                <input type='password' id='loginPassword' onKeyUp= {this.spacesMessage} onKeyDown={this.prevent} name='password' style={{marginRight: '8px'}}></input>
+                                <button onClick = {this.passwordVisiblilty}>{this.state.passwordHidden? <div className="labelWithIcon">< VisibilityOffIcon style={{marginRight: '4px', fontSize: '16px'}}/>hidden</div>: <div className="labelWithIcon">< VisibilityIcon style={{marginRight: '4px', fontSize: '16px'}}/>visible</div>}</button>
+                            </div>
                         </div>
-                        <input name='login' type='submit' id='loginSubmit' value='Login' disabled onSubmit={this.login}/>
+                        <input name='login' type='submit' id='loginSubmit' value='Login' disabled onSubmit={this.login} style={{margin: '20px'}}/>
                     </form>
                     <p id="loginMessage"></p>
                 </div>

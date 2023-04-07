@@ -5,6 +5,7 @@ import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
 import Button from '@mui/material/Button';
 import CloseIcon from '@mui/icons-material/Close';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 
 export default function BackToHomePage() {
   const [open, setOpen] = React.useState(false);
@@ -52,7 +53,7 @@ export default function BackToHomePage() {
           setOpen(true);
         }}
       >
-        Back To Home Page
+        <ArrowBackIosNewIcon sx={{mr: '8px', fontSize: 'medium'}}/> Back To Home Page
       </Button>
     </Box>
   );

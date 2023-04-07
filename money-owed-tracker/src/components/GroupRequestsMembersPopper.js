@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Popper from '@mui/material/Popper';
+import PendingTwoToneIcon from '@mui/icons-material/PendingTwoTone';
 
 export default function GroupRequestsMembersPopper(props) {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -33,7 +34,7 @@ export default function GroupRequestsMembersPopper(props) {
 
   return (
     <div>
-      <button aria-describedby={id} type="button" onClick={getOtherUsers}>See All Members</button>
+      <button aria-describedby={id} type="button" onClick={getOtherUsers} id="seeAllMembers">< PendingTwoToneIcon style={{marginRight: '4px', fontSize: '20px'}}/> See All Members</button>
       <Popper id={id} open={open} anchorEl={anchorEl}>
         <Box sx={{ border: 1, p: 1, bgcolor: 'background.paper' }}>
           <div>{otherMembers && otherMembers.map((user) => {

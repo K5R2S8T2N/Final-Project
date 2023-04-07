@@ -1,5 +1,6 @@
 import './App.css';
 import { Route, Routes } from "react-router-dom";
+import Footer from './components/Footer';
 import Register from './components/Register';
 import Login from './components/Login';
 import Home from './components/Home';
@@ -14,19 +15,22 @@ import AddExpense from './components/AddExpense';
 function App() {
 
   return (
-    <div className="App">
-      <NavBar />
-      <Routes>
-        <Route path='/login' element={<Login />}></Route>
-        <Route path='/' element={<Home />}></Route>
-        <Route path='/register' element={<Register />}></Route>
-        <Route path='/groups' element={<Groups />}></Route>
-        <Route path='/create' element={<Create />}></Route>
-        <Route path='/requests' element={<Requests />}></Route>
-        <Route path='/opengroup' element={<OpenGroup />}></Route>
-        <Route path='/openpending' element={<OpenPendingGroup />}></Route>
-        <Route path='/add' element={<AddExpense />}></Route>
-      </Routes>
+    <div className="App" style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100vh', width: '100vw'}}>
+      <div>
+        <NavBar />
+        <Routes>
+          <Route path='/login' element={<Login />}></Route>
+          <Route path='/' element={<Home />}></Route>
+          <Route path='/register' element={<Register />}></Route>
+          <Route path='/groups' element={<Groups />}></Route>
+          <Route path='/create' element={<Create />}></Route>
+          <Route path='/requests' element={<Requests />}></Route>
+          <Route path='/opengroup' element={<OpenGroup />}></Route>
+          <Route path='/openpending' element={<OpenPendingGroup />}></Route>
+          <Route path='/add' element={<AddExpense />}></Route>
+        </Routes>
+      </div>
+      < Footer/>
     </div>
   );
 }

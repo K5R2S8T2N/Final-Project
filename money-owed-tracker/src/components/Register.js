@@ -1,4 +1,11 @@
 import React from "react";
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import PersonIcon from '@mui/icons-material/Person';
+import LockIcon from '@mui/icons-material/Lock';
+import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
 
 class Register extends React.Component{
     constructor(props){
@@ -9,6 +16,7 @@ class Register extends React.Component{
         }
     }
     passwordVisiblilty = (e) => {
+        e.stopPropagation();
         e.preventDefault();
         const password = document.getElementById('registerPassword');
         if (this.state.passwordHidden){
@@ -56,6 +64,11 @@ class Register extends React.Component{
             message.innerHTML = `${e.target.name} cannot contain spaces`;
             e.target.value = e.target.value.split(' ').join('');
         }
+
+        if(e.key ==='-'){
+            message.innerHTML = `${e.target.name} cannot contain hyphens`;
+            e.target.value = e.target.value.split('-').join('');
+        }
     }
 
     register = (e) => {
@@ -63,6 +76,8 @@ class Register extends React.Component{
         const message = document.getElementById('registerMessage');
         const username = e.target.username.value;
         const password = e.target.password.value;
+        const backToHomeBtn = document.getElementById('registerBackToHomeBtn');
+        const registerIcon = document.getElementById('successfulRegisterIcon');
 
         // checking + inserting username into database 
         fetch('http://localhost:3000/register', {
@@ -84,6 +99,8 @@ class Register extends React.Component{
                 e.target.username.value= "";
                 e.target.password.value = "";
                 e.target.register.disabled = true;
+                backToHomeBtn.style.removeProperty('display');
+                registerIcon.style.removeProperty('display');
             }
         })
         .catch((err) => console.log(err))
@@ -94,6 +111,22 @@ class Register extends React.Component{
         if(e.key === 'Enter'){
             e.preventDefault();
         }
+        // for resetting username / password too long messages 
+        const userCount = document.getElementById('registerUsername').value.length;
+        const passCount = document.getElementById('registerPassword').value.length;
+        const usernameCount = document.getElementById('usernameCount');
+        const passwordCount = document.getElementById('passwordCount');
+        if (0>= userCount <= 50 ){
+            usernameCount.innerHTML = '';
+        }
+        if (0>= passCount <= 50 ){
+            passwordCount.innerHTML = '';
+        }
+        // for removing back to home message + register icon if registering more than one person 
+        const backToHomeBtn = document.getElementById('registerBackToHomeBtn');
+        const registerIcon = document.getElementById('successfulRegisterIcon');
+        backToHomeBtn.style.display = 'none';
+        registerIcon.style.display = 'none';
     }
 
     logout = () => {
@@ -111,23 +144,42 @@ class Register extends React.Component{
         const checkSignedIn = () => {
             if (this.state.signedIn === null) {
                 return (
-                <div>
+                <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                    <PersonAddAlt1Icon style={{fontSize: '110px', background: 'black', borderRadius: '12px', padding: '10px 10px 0 10px', color: 'white'}}/>
                     <h1>Registration</h1>
                     <form onInput={this.checkFilled} onSubmit={this.register} >
                         <div>
-                            <label>Username</label>
+                            <div className="labelWithIcon" style={{margin: '10px'}}>
+                                < PersonIcon style={{marginRight: '4px', fontSize: '20px'}}/>
+                                <label>Username</label>
+                            </div>
                             <input type='text' id='registerUsername' onKeyUp= {this.spacesMessage} onKeyDown={this.prevent} name='username'></input>
                             <p id="usernameCount"></p>
                         </div>
                         <div>
-                            <label>Password</label>
-                            <input type='password' id='registerPassword' onKeyUp= {this.spacesMessage} onKeyDown={this.prevent} name='password'></input>
+                            <div className="labelWithIcon" style={{margin: '10px'}}>
+                                < LockIcon style={{marginRight: '4px', fontSize: '16px'}}/>
+                                <label>Password</label>
+                            </div>
+                            <div style={{display: 'flex', justifyContent: 'center'}}>
+                                <input type='password' id='registerPassword' onKeyUp= {this.spacesMessage} onKeyDown={this.prevent} name='password' style={{marginRight: '8px'}}></input>
+                                <button onClick = {this.passwordVisiblilty}>
+                                    {this.state.passwordHidden?
+                                        <div className="labelWithIcon">< VisibilityOffIcon style={{marginRight: '4px', fontSize: '16px'}}/>hidden</div>:
+                                        <div className="labelWithIcon">< VisibilityIcon style={{marginRight: '4px', fontSize: '16px'}}/>visible</div>
+                                    }
+                                </button>
+                            </div>
                             <p id='passwordCount'></p>
-                            <button onClick = {this.passwordVisiblilty}>{this.state.passwordHidden? "hidden" : "visible"}</button>
                         </div>
                         <input name='register' type='submit' id='registerSubmit' value='Register' disabled onSubmit={this.register}/>
                     </form>
-                    <p id="registerMessage"></p>
+                    <div className="labelWithIcon">
+                        <HowToRegIcon id="successfulRegisterIcon" style={{marginRight: '8px', display: 'none'}}/>
+                        <p id="registerMessage"></p>
+                    </div>
+                    
+                    <button id='registerBackToHomeBtn' onClick={() => {window.location.href = '/groups'}} className='iconBtn' style={{marginBottom: '20px', display: 'none'}}><ArrowBackIosNewIcon sx={{marginRight: '4px', marginLeft: '0px',fontSize: 'medium'}}/>Back To Home</button>
                 </div>
                 );
             } else {

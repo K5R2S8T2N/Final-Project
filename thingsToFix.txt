@@ -7,7 +7,7 @@ not logged in...
 - create
 - requests 
 
-- footer
 - add all groups dropdown in navbar
 - add amount slider for expenses display
-- rendering top table when not expenses (ie not currencies)
+- add how much signed in owes per currency
+- style successful sign in message before redirecting 

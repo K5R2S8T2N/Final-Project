@@ -452,7 +452,16 @@ app.post('/loadSpecificExpensesForGroup', (req, res) => {
         })
 });
 
-
+// for deleting expense on open group page 
+app.post('/deleteExpense', (req, res) => {
+    const {groupName, expenseName} = req.body;
+    db('expenses')
+        .where({current_group_name: groupName, expense: expenseName})
+        .del(['current_group_name', 'current_group_creator', 'expense', 'amount_to_give', 'amount_to_recieve', 'amount_overall', 'currency', 'buyer', 'receiver', 'buyer_involved'])
+        .then(expensePerMember =>
+            res.send({deletedExpenseArr: expensePerMember})
+        )
+})
 // app.use('/test', async (req, res) => {
 //     const data = await db('users').select();
 //     res.json(data);
