@@ -5,6 +5,7 @@ import SelectExpense from "./addExpenseComponents/SelectExpense";
 import SelectMembersInvolved from "./addExpenseComponents/SelectMembersInvolved";
 import ConfirmExpense from "./addExpenseComponents/ConfirmExpense";
 import SelectPurchaseMadeBy from "./addExpenseComponents/SelectPurchaseMadeBy";
+import ExitToAppOutlinedIcon from '@mui/icons-material/ExitToAppOutlined';
 
 class AddExpense extends React.Component{
     constructor(props){
@@ -14,7 +15,7 @@ class AddExpense extends React.Component{
             signedInId: localStorage.getItem("signedinID"),
             groupName: localStorage.getItem('groupName'),
             groupCreator: localStorage.getItem("groupCreator"),
-            groupMembers: Object.values(JSON.parse(localStorage.getItem("groupMembers"))),
+            groupMembers: localStorage.getItem("groupMembers"),
             allInputsFilled: false,
             everythingDisabled: false,
             expensesFilled: false,
@@ -29,6 +30,16 @@ class AddExpense extends React.Component{
             expenseHelperText: 'Required',
             expenseError: false,
 
+        }
+    }
+
+    // for redirecting if not signed in 
+    notRedirected = true;
+    redirectNotSignedIn = () => {
+        if(this.notRedirected){
+            this.notRedirected = false;
+            localStorage.setItem("redirectMessage", "Sign in to view add expenses page");
+            window.location.href = '/';
         }
     }
 
@@ -100,8 +111,8 @@ class AddExpense extends React.Component{
                             < SelectCurrency inputDisabled={this.state.everythingDisabled} inputFilled={this.changeCurrencyStatus} inputValue={this.changeCurrency}/>
                         </div>
                         <div style={{display: 'flex', justifyContent: 'center'}}>
-                            < SelectMembersInvolved groupNamesArr={this.state.groupMembers} inputDisabled={this.state.everythingDisabled} inputFilled={this.changeInvolvedStatus} inputValue={this.changeInvolved}/>
-                            < SelectPurchaseMadeBy signedIn={this.state.signedIn} groupNamesArr={this.state.groupMembers} inputDisabled={this.state.everythingDisabled} inputValue={this.changeBuyer}/>
+                            < SelectMembersInvolved groupNamesArr={Object.values(JSON.parse(this.state.groupMembers))} inputDisabled={this.state.everythingDisabled} inputFilled={this.changeInvolvedStatus} inputValue={this.changeInvolved}/>
+                            < SelectPurchaseMadeBy signedIn={this.state.signedIn} groupNamesArr={Object.values(JSON.parse(this.state.groupMembers))} inputDisabled={this.state.everythingDisabled} inputValue={this.changeBuyer}/>
                         </div>
                         <ConfirmExpense
                             allFilled={this.state.expensesFilled && this.state.amountFilled && this.state.currencyFilled && this.state.involvedFilled}
@@ -116,7 +127,7 @@ class AddExpense extends React.Component{
                             expenseMessage={this.changeExpenseHelperText}
                             expenseError={this.changeExpenseError}
                         />
-                        <button onClick={this.backToGroup} disabled={this.state.everythingDisabled}>Back To Group</button>
+                        <button onClick={this.backToGroup} disabled={this.state.everythingDisabled} className="navBarIcons" style={{marginBottom: '20px'}}>< ExitToAppOutlinedIcon style={{fontSize: '24px'}}/> Back To Group</button>
                     </div>
                 );
             } else if (this.state.signedIn != null && this.state.groupName == null) {
@@ -129,7 +140,7 @@ class AddExpense extends React.Component{
             } else {
                 return (
                     <div>
-                        <p>Sign in to view groups</p>
+                        {this.redirectNotSignedIn()}
                     </div>
                     
                 );

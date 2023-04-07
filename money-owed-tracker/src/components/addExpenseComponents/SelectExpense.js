@@ -4,17 +4,27 @@ import TextField from '@mui/material/TextField';
 import FormHelperText from '@mui/material/FormHelperText';
 
 export default function SelectExpense(props) {
+
   // stop enter key triggering submit 
   const prevent = (e) => {
     props.changeErrorStatus(false);
     props.changeExpenseMessage('Required');
-    
     if(e.key === 'Enter'){
         e.preventDefault();
     }
   }
 
   const checkFilled = (e) => {
+    // stop spaces 
+    if(e.keyCode == 32){
+      e.target.value = e.target.value.split(' ').join('');
+    }
+
+    // stop '-' character 
+    if(e.key ==='-'){
+        e.target.value = e.target.value.split('-').join('');
+    }
+
     const inputValue = e.target.value.trim();
 
     if(inputValue !== ''){

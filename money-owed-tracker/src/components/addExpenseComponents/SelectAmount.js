@@ -16,7 +16,7 @@ export default function SelectAmount(props) {
   }
 
   const removeUnwantedCharacters = (e) => {
-    if(e.key === '-' || e.key === '+'){
+    if(e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E'){
       e.target.value=correctInput;
     }
     if(e.target.value < 0){

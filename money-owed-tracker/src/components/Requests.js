@@ -1,7 +1,7 @@
 import React from "react";
 import GroupRequestsMembersPopper from "./GroupRequestsMembersPopper";
-import Box from '@mui/material/Box';
-import Popper from '@mui/material/Popper';
+import ThumbUpAltTwoToneIcon from '@mui/icons-material/ThumbUpAltTwoTone';
+import ThumbDownAltTwoToneIcon from '@mui/icons-material/ThumbDownAltTwoTone';
 
 class Requests extends React.Component{
     constructor(props){
@@ -17,6 +17,16 @@ class Requests extends React.Component{
             this.checkRequests();
         }
         
+    }
+
+    // for redirecting if not signed in 
+    notRedirected = true;
+    redirectNotSignedIn = () => {
+        if(this.notRedirected){
+            this.notRedirected = false;
+            localStorage.setItem("redirectMessage", "Sign in to view requests");
+            window.location.href = '/';
+        }
     }
 
     checkRequests = async () => {
@@ -90,12 +100,12 @@ class Requests extends React.Component{
                                         <div>
                                             <p> group name: {request[0]}</p>
                                             <p> made by: {request[1]}</p>
+                                            <GroupRequestsMembersPopper information={`otherusers-${index}`} requestsInfo={this.state.groupRequests}/>
                                         </div>
                                         
-                                        <div id='requestsButtonsDiv'> 
-                                            <button id={`accepted-${request[0]}-${request[1]}`} onClick={this.respondRequest}>accept</button>
-                                            <button id={`declined-${request[0]}-${request[1]}`} onClick={this.respondRequest}>decline</button>
-                                            <GroupRequestsMembersPopper information={`otherusers-${index}`} requestsInfo={this.state.groupRequests}/>
+                                        <div id='requestsButtonsDiv' style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}> 
+                                            <button id={`accepted-${request[0]}-${request[1]}`} onClick={this.respondRequest} className="navBarIcons" style={{marginBottom: '10px'}}><ThumbUpAltTwoToneIcon style={{fontSize: '18px'}}/>accept</button>
+                                            <button id={`declined-${request[0]}-${request[1]}`} onClick={this.respondRequest} className="navBarIcons" style={{marginTop: '10px'}}><ThumbDownAltTwoToneIcon style={{fontSize: '18px'}}/>decline</button>  
                                         </div>
                                     </div>
                                 )
@@ -107,7 +117,7 @@ class Requests extends React.Component{
             } else {
                 return (
                     <div>
-                        <p>Sign in to view requests</p>
+                        {this.redirectNotSignedIn()}
                     </div>
                     
                 );

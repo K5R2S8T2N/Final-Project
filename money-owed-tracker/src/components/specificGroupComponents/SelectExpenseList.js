@@ -44,23 +44,23 @@ export default function SelectExpenseList(props) {
           
           const submittedExpensesArr = [];
           for (let a=0; a<newStatesArr.length; a++){
-            if (newStatesArr[a] == true){
+            if (newStatesArr[a] === true){
               submittedExpensesArr.push(expenses[a])
             }
           }
-          if(submittedExpensesArr.length == 0){
+          if(submittedExpensesArr.length === 0){
             props.inputValue('none', submittedExpensesArr);
           }else{
             let sentence = '';
             submittedExpensesArr.forEach((expense, index, arr) => {
-              if(index == arr.length -1){
-                if(arr.length == 1){
+              if(index === arr.length -1){
+                if(arr.length === 1){
                   sentence = `${sentence}${expense}`;
                 } else {
                   sentence = `${sentence}and ${expense}`;
                 }
                 
-              } else if(index == (arr.length - 2)){
+              } else if(index === (arr.length - 2)){
                 sentence = `${sentence}${expense} `;
               } else {
                 sentence = `${sentence}${expense}, `;

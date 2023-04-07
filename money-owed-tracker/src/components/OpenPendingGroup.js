@@ -17,6 +17,26 @@ class OpenPendingGroup extends React.Component{
         
     }
 
+    // for redirecting if not signed in 
+    notRedirected = true;
+    redirectNotSignedIn = () => {
+        if(this.notRedirected){
+            this.notRedirected = false;
+            localStorage.setItem("redirectMessage", "Sign in to view groups");
+            window.location.href = '/';
+        }
+    }
+
+    // for redirecting if no group selected 
+    notGroupRedirected = true;
+    redirectNoGroupSelected = () => {
+        if(this.notGroupRedirected){
+            this.notGroupRedirected = false;
+            localStorage.setItem("redirectMessage", "No Group Selected");
+            window.location.href = '/groups';
+        }
+    }
+
     openGroup = async () => {
         this.notRun = false;
         const response = await fetch('http://localhost:3000/loadSpecificGroup', {
@@ -61,13 +81,13 @@ class OpenPendingGroup extends React.Component{
             } else if (this.state.signedIn != null && this.state.groupName == null){
                 return (
                     <div>
-                        <p>No Group Selected</p>
+                        {this.redirectNoGroupSelected()}
                     </div>
                 );
             } else {
                 return (
                     <div>
-                        <p>Sign in to view groups</p>
+                        {this.redirectNotSignedIn()}
                     </div>  
                 );
             }

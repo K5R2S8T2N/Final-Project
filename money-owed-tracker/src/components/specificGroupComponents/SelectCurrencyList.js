@@ -44,23 +44,23 @@ export default function SelectCurrenciesList(props) {
           
           const submittedCurrenciesArr = [];
           for (let a=0; a<newStatesArr.length; a++){
-            if (newStatesArr[a] == true){
+            if (newStatesArr[a] === true){
                 submittedCurrenciesArr.push(currencies[a])
             }
           }
-          if(submittedCurrenciesArr.length == 0){
+          if(submittedCurrenciesArr.length === 0){
             props.inputValue('none', []);
           }else{
             let sentence = '';
             submittedCurrenciesArr.forEach((currency, index, arr) => {
-              if(index == arr.length -1){
-                if(arr.length == 1){
+              if(index === arr.length -1){
+                if(arr.length === 1){
                   sentence = `${sentence}${currency}`;
                 } else {
                   sentence = `${sentence}and ${currency}`;
                 }
                 
-              } else if(index == (arr.length - 2)){
+              } else if(index === (arr.length - 2)){
                 sentence = `${sentence}${currency} `;
               } else {
                 sentence = `${sentence}${currency}, `;

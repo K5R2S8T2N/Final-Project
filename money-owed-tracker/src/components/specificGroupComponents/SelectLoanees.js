@@ -44,23 +44,23 @@ export default function SelectLoanees(props) {
           
           const submittedNamesArr = [];
           for (let a=0; a<newStatesArr.length; a++){
-            if (newStatesArr[a] == true){
+            if (newStatesArr[a] === true){
               submittedNamesArr.push(names[a])
             }
           }
-          if(submittedNamesArr.length == 0){
+          if(submittedNamesArr.length === 0){
             props.inputValue('none', []);
           }else{
             let sentence = '';
             submittedNamesArr.forEach((name, index, arr) => {
-              if(index == arr.length -1){
-                if(arr.length == 1){
+              if(index === arr.length -1){
+                if(arr.length === 1){
                   sentence = `${sentence}${name}`;
                 } else {
                   sentence = `${sentence}and ${name}`;
                 }
                 
-              } else if(index == (arr.length - 2)){
+              } else if(index === (arr.length - 2)){
                 sentence = `${sentence}${name} `;
               } else {
                 sentence = `${sentence}${name}, `;

@@ -1,5 +1,11 @@
 import React from "react";
 import BackToHomePage from "./BackToHomePage";
+import SaveIcon from '@mui/icons-material/Save';
+import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
+import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
+import DriveFileRenameOutlineRoundedIcon from '@mui/icons-material/DriveFileRenameOutlineRounded';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+
 class Create extends React.Component{
     constructor(props){
         super(props);
@@ -17,11 +23,24 @@ class Create extends React.Component{
         
     }
 
+    // for redirecting if not signed in 
+    notRedirected = true;
+    redirectNotSignedIn = () => {
+        if(this.notRedirected){
+            this.notRedirected = false;
+            localStorage.setItem("redirectMessage", "Sign in to view create page");
+            window.location.href = '/';
+        }
+    }
+
     addingMember = async (e) => {
         const message = document.getElementById('newGroupMembersMessage');
         const createMessage = document.getElementById('createMessage');
         const newUser = e.target.value;
         const count = newUser.length;
+        const backToGroupsBtn = document.getElementById('backToGroups');
+        backToGroupsBtn.style.display = 'none';
+
         if (e.key === "Enter"){
             console.log(e.key);
             e.preventDefault();
@@ -79,6 +98,10 @@ class Create extends React.Component{
             message.innerHTML = `${e.target.name} cannot contain spaces`;
             e.target.value = e.target.value.split(' ').join('');
         }
+        if(e.key === '-'){
+            message.innerHTML = `${e.target.name} cannot contain hyphens`;
+            e.target.value = e.target.value.split('-').join('');
+        }
         this.checkDetailsFilledForCreate();
     }
 
@@ -92,6 +115,10 @@ class Create extends React.Component{
             message.innerHTML = `${e.target.name} cannot contain spaces`;
             e.target.value = e.target.value.split(' ').join('');
         }
+        if(e.key === '-'){
+            message.innerHTML = `${e.target.name} cannot contain hyphens`;
+            e.target.value = e.target.value.split('-').join('');
+        }
         this.checkDetailsFilledForCreate();
         createMessage.innerHTML = '';
     }
@@ -100,36 +127,45 @@ class Create extends React.Component{
         const groupName = document.getElementById('newGroupName');
         const message = document.getElementById('newGroupNameMessage');
         const createMessage = document.getElementById('createMessage');
-        if(e.key === 'Enter'){
-            e.preventDefault();
-            // check if group namem already taken 
-            fetch('http://localhost:3000/checkGroupName', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    group: e.target.value,
-                    user: localStorage.getItem("signedin"),
-                }),
-            })
-            .then((res) => {
-                return res.json()
-            })
-            .then((data) => {
-                if(data.submission === "successful"){
-                    groupName.innerHTML = data.name;
-                    e.target.value = "";
-                } else {
-                    message.innerHTML = data.message;
-                }
-                this.checkDetailsFilledForCreate();
-            })
-            .catch((err) => console.log(err))  
-        }
+        const backToGroupsBtn = document.getElementById('backToGroups');
         message.innerHTML = '';
-        createMessage.innerHTML = '';
-        this.checkDetailsFilledForCreate();
+        backToGroupsBtn.style.display = 'none';
+        if(e.key === 'Enter'){
+            message.innerHTML = 'teds';
+            e.preventDefault();
+            if(e.target.value.length > 50){
+                message.innerHTML = 'group name too long';
+            } else {
+                // check if group namem already taken 
+                fetch('http://localhost:3000/checkGroupName', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        group: e.target.value,
+                        user: localStorage.getItem("signedin"),
+                    }),
+                })
+                .then((res) => {
+                    return res.json()
+                })
+                .then((data) => {
+                    if(data.submission === "successful"){
+                        groupName.innerHTML = data.name;
+                        e.target.value = "";
+                    } else {
+                        message.innerHTML = data.message;
+                    }
+                    this.checkDetailsFilledForCreate();
+                })
+                .catch((err) => console.log(err))
+                message.innerHTML = '';
+                createMessage.innerHTML = '';
+            } 
+            this.checkDetailsFilledForCreate();
+        }
+        
     }
 
     deleteUser = (e) => {
@@ -172,6 +208,7 @@ class Create extends React.Component{
         const groupNameInput = document.getElementById('groupName');
         const newGroupMembersMessage = document.getElementById('newGroupMembersMessage');
         const newGroupNameMessage = document.getElementById('newGroupNameMessage');
+        const backToGroupsBtn = document.getElementById('backToGroups');
          // add new group to database 
          fetch('http://localhost:3000/addNewGroup', {
             method: 'POST',
@@ -195,12 +232,9 @@ class Create extends React.Component{
             groupNameInput.value = '';
             newGroupMembersMessage.innerHTML = '';
             newGroupNameMessage.innerHTML = '';
+            backToGroupsBtn.style.removeProperty('display');
         })
         .catch((err) => console.log(err))
-    }
-
-    backMessage = () => {
-
     }
 
     render(){
@@ -217,33 +251,34 @@ class Create extends React.Component{
                                     return  (
                                         <div key={user} className='newGroupMembers'>
                                             <p>{user}</p>
-                                            <button id={user} onClick={this.deleteUser}>delete</button>
+                                            <button id={user} onClick={this.deleteUser} className='iconBtn'>< PersonRemoveIcon style={{marginRight: '8px'}}/> delete</button>
                                         </div>
                                     )
                                 })
                             }</div>
                             <form>
                                 <div>
-                                    <label>add member</label>
+                                    <label className='labelWithIcon'>< PersonAddAlt1Icon style={{marginRight: '8px'}}/> add member</label>
                                     <input type='text' id='addingMemberInput' name='member' onKeyDown={this.addingMember} onKeyUp={this.spacesMessage}></input>
                                     <p id='newGroupMembersMessage'></p>
                                 </div>
                             </form>
                         </div>
 
-                        <div>
+                        <div >
                             <h3>Group Name</h3>
                             <h4 id='newGroupName'> </h4>
                             <form>
-                            <label>change group name</label>
+                            <label className='labelWithIcon'><DriveFileRenameOutlineRoundedIcon style={{marginRight: '8px'}}/> change group name</label>
                                 <input type='text' id='groupName' name='group name' onKeyUp={this.otherSpacesMessage} onKeyDown={this.changeGroupName}></input>
                                 <p id='newGroupNameMessage'></p>
                             </form>
                         </div>
 
-                        <div>
-                            <input name='create' type='submit' id='createGroup' value='Create Group' onClick={this.createGroup}/>
+                        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                            <button name='create' id='createGroup' onClick={this.createGroup}><SaveIcon /> Create Group</button>
                             <p id="createMessage"></p>
+                            <button name='backToGroups' id='backToGroups' onClick={() => {window.location.href = '/groups'}} className='navBarIcons' style={{marginBottom: '20px', display: 'none'}}>< ExitToAppIcon style={{fontSize: '24px'}}/>Back to Groups</button>
                         </div>
                         
                         <div style={{display: 'flex', alignItems: 'center'}}>
@@ -256,7 +291,7 @@ class Create extends React.Component{
             } else {
                 return (
                     <div>
-                        <p>Sign in to view create page</p>
+                        {this.redirectNotSignedIn()}
                     </div>
                     
                 );

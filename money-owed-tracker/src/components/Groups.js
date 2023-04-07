@@ -1,4 +1,11 @@
 import React from "react";
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
+import RedirectedMessage from "./RedirectedMessage";
+import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
+import ErrorOutlineOutlinedIcon from '@mui/icons-material/ErrorOutlineOutlined';
+import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 
 class Groups extends React.Component{
     constructor(props){
@@ -6,6 +13,7 @@ class Groups extends React.Component{
         this.state = {
             signedIn: localStorage.getItem("signedin"),
             signedInId: localStorage.getItem("signedinID"),
+            redirectReason: localStorage.getItem("redirectMessage"),
         }
     }
     notRun = true;
@@ -13,6 +21,11 @@ class Groups extends React.Component{
     componentDidMount(){
         if(this.notRun){
             this.checkGroups();
+
+            // check if redirected from another page 
+            if(this.state.redirectReason !== null){
+                this.setState({redirectMessage: true});
+            }
         }
         
     }
@@ -61,9 +74,21 @@ class Groups extends React.Component{
             }
         });
     }
+
+    notRedirected = true;
+    redirectNotSignedIn = () => {
+        if(this.notRedirected){
+            this.notRedirected = false;
+            localStorage.setItem("redirectMessage", "Sign in to view groups");
+            window.location.href = '/';
+        }
+    }
+
     openGroup = (e) => {
+        e.stopPropagation();
         const groupInfoArr = e.target.id.split('-');
         if(groupInfoArr[3] === 'pending' || groupInfoArr[3] === 'active'){
+            console.log('openning');
             localStorage.setItem("groupName", groupInfoArr[1]);
             localStorage.setItem("groupCreator", groupInfoArr[2]);
             localStorage.setItem("groupStatus", groupInfoArr[3]);
@@ -90,6 +115,7 @@ class Groups extends React.Component{
             })
             .catch((err) => console.log(err))
         } else {
+            console.log('deleting');
             fetch('http://localhost:3000/deleteInvalidGroup', {
                 method: 'POST',
                 headers: {
@@ -113,16 +139,19 @@ class Groups extends React.Component{
                 this.setState({groupsList: newGroupsList});
 
             })
-            .catch((err) => console.log(err))
-            
+            .catch((err) => console.log(err)) 
         }
+    }
+
+    changeIsOpenMessage = (visibility) => {
+        this.setState({redirectMessage: visibility});
     }
 
     render(){
         const checkSignedIn = () => {
             if (this.state.signedIn != null) {
                 return (
-                    <div>
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                         <h3>Groups</h3>
                         <div id="groupsList">{
                             this.state.groupsList && this.state.groupsList.map( (group, index) => {
@@ -131,20 +160,37 @@ class Groups extends React.Component{
                                         <div>
                                             <p> group name: {group[0]}</p>
                                             <p> made by: {group[1]}</p>
-                                            <p> status: {group[2]}</p>
+                                            <div style={{display: 'flex', alignItems: 'center'}}>
+                                                <p style={{display: 'inline', marginRight: '6px'}}> status: {group[2]}</p>
+                                                {/* adding icon for status */}
+                                                {
+                                                  group[2] === 'invalid'? 
+                                                    <ErrorOutlineOutlinedIcon style={{display: 'inline', fontSize: '21px'}}/>:
+                                                    group[2] === 'pending'?
+                                                        <ScheduleOutlinedIcon style={{display: 'inline', fontSize: '21px'}}/>:
+                                                        <PeopleAltOutlinedIcon style={{display: 'inline', fontSize: '20px'}}/>
+                                                }
+                                                
+                                            </div>
                                         </div>
-                                        <button id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`} className='groupOpenBtn' onClick={this.openGroup}>{group[2] === 'invalid' ? 'delete' : 'open'}</button>
+                                        <button className='groupOpenBtn' onClick={this.openGroup} id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`}>
+                                            {group[2] === 'invalid' ?
+                                                <div className='navBarIcons' id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`}><DeleteOutlineOutlinedIcon style={{fontSize: '24px'}} id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`}/> Delete </div>:
+                                                <div className='navBarIcons' id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`}><FolderOpenIcon style={{fontSize: '18px'}} id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`}/> Open </div>
+                                            }
+                                        </button>
                                     </div>
                                 )
                             })
                         }</div>
+                        <button className="labelWithIcon" style={{marginBottom: '16px'} }onClick={() => {window.location.href = '/create'}}>< CreateNewFolderIcon style={{marginRight: '2px', marginBottom: '2px', fontSize: '22px'}}/> New Group</button>
                     </div>
                     
                 );
             } else {
                 return (
                     <div>
-                        <p>Sign in to view groups</p>
+                        {this.redirectNotSignedIn()}
                     </div>
                     
                 );
@@ -154,6 +200,7 @@ class Groups extends React.Component{
         return(
             <div>
                {checkSignedIn()}
+               < RedirectedMessage isOpen = {this.state.redirectMessage} changeIsOpen = {this.changeIsOpenMessage} message = {this.state.redirectReason}/>
             </div>
         )
     }
