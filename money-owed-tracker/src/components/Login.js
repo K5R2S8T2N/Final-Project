@@ -32,7 +32,7 @@ class Login extends React.Component{
         const username = document.getElementById('loginUsername');
         const password = document.getElementById('loginPassword');
         const message = document.getElementById('loginMessage');
-        if (username.value.length > 0 && password.value.length > 0 && username.value !=' ' && password.value !=' '){
+        if (username.value.length > 0 && password.value.length > 0 && username.value !== ' ' && password.value !== ' '){
             login.disabled = false;
         } else {
             login.disabled = true;
@@ -45,7 +45,7 @@ class Login extends React.Component{
         if(e.key === 'Enter'){
             e.preventDefault();
         }
-        if(e.keyCode == 32){
+        if(e.keyCode === 32){
             message.innerHTML = `${e.target.name} cannot contain spaces`;
             e.target.value = e.target.value.split(' ').join('');
         }
@@ -76,7 +76,6 @@ class Login extends React.Component{
             return res.json()
         })
         .then((data) => {
-            message.innerHTML = data.message;
             if(data.submission === "successful"){
                 e.target.username.value= "";
                 e.target.password.value = "";
@@ -84,6 +83,9 @@ class Login extends React.Component{
                 window.location.href = '/';
                 localStorage.setItem("signedin", data.user);
                 localStorage.setItem("signedinID", data.id);
+                localStorage.setItem("navBarRerender", false);
+            } else {
+                message.innerHTML = data.message;
             }
         })
         .catch((err) => console.log(err))
@@ -103,6 +105,7 @@ class Login extends React.Component{
         localStorage.removeItem("groupCreator");
         localStorage.removeItem("groupStatus");
         localStorage.removeItem("groupMembers");
+        localStorage.removeItem("navBarRerender");
         this.setState({signedIn: localStorage.getItem("signedin")});
         window.location.href = '/login';
     }
@@ -112,24 +115,24 @@ class Login extends React.Component{
             if (this.state.signedIn === null) {
                 return (
                 <div>
-                    <AccountBoxIcon style={{fontSize: '160px'}}/>
-                    <h1>Login</h1>
+                    <AccountBoxIcon id='loginMainIcon'/>
+                    <h1 id="loginTitle">Login</h1>
                     <form onInput={this.checkFilled} onSubmit={this.login} >
                         <div>
-                            <div className="labelWithIcon" style={{margin: '10px'}}>
+                            <div className="labelWithIcon userPassLabels" style={{margin: '10px'}}>
                                 < PersonIcon style={{marginRight: '4px', fontSize: '20px'}}/>
                                 <label>Username</label>
                             </div>
                             <input type='text' id='loginUsername' onKeyUp= {this.spacesMessage} onKeyDown={this.prevent} name='username'></input>
                         </div>
                         <div>
-                            <div className="labelWithIcon" style={{margin: '10px'}}>
+                            <div className="labelWithIcon userPassLabels" style={{margin: '10px'}}>
                                 < LockIcon style={{marginRight: '4px', fontSize: '16px'}}/>
                                 <label>Password</label>
                             </div>
                             <div style={{display: 'flex', justifyContent: 'center'}}>
                                 <input type='password' id='loginPassword' onKeyUp= {this.spacesMessage} onKeyDown={this.prevent} name='password' style={{marginRight: '8px'}}></input>
-                                <button onClick = {this.passwordVisiblilty}>{this.state.passwordHidden? <div className="labelWithIcon">< VisibilityOffIcon style={{marginRight: '4px', fontSize: '16px'}}/>hidden</div>: <div className="labelWithIcon">< VisibilityIcon style={{marginRight: '4px', fontSize: '16px'}}/>visible</div>}</button>
+                                <button onClick = {this.passwordVisiblilty} className ='visibilitybtn'>{this.state.passwordHidden? <div className="labelWithIcon visibleOff">< VisibilityOffIcon style={{marginRight: '4px', fontSize: '16px'}} className = 'importedLogos'/>hidden</div>: <div className="labelWithIcon visibleOn">< VisibilityIcon style={{marginRight: '4px', fontSize: '16px'}} className = 'importedLogos'/>visible</div>}</button>
                             </div>
                         </div>
                         <input name='login' type='submit' id='loginSubmit' value='Login' disabled onSubmit={this.login} style={{margin: '20px'}}/>
@@ -140,8 +143,8 @@ class Login extends React.Component{
             } else {
                 return (
                     <div>
-                        <p>Already signed in. Logout to resign in</p>
-                        <button onClick={this.logout}>logout</button>
+                        <p className='alreadySignedInMessage'>Already signed in. Logout to resign in</p>
+                        <button onClick={this.logout} className='areadySignedInBtn'>logout</button>
                     </div>
                     
                 );
@@ -149,7 +152,7 @@ class Login extends React.Component{
         }
 
         return(
-            <div className="App">
+            <div className="loginRegisterPages">
                {checkSignedIn()}
             </div>
             

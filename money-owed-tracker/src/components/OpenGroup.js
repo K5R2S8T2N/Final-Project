@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import MembersInvolvedDropdown from "./specificGroupComponents/MembersInvolvedDropdown";
 import CurrencyDropdown from "./specificGroupComponents/CurrencyDropdown";
 import PayedByDropdown from "./specificGroupComponents/PayedByDropdown";
@@ -7,8 +7,10 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import PlaylistAddOutlinedIcon from '@mui/icons-material/PlaylistAddOutlined';
-import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
 import BalanceBackdrop from "./BalanceBackdrop";
+import ExpensesSummaryDropdown from './expensesSummaryComponents/ExpensesSummaryDropdown';
+import ValidCurrencies from './conversionComponents/ValidCurrencies.json';
+import ConvertedPopup from './conversionComponents/ConvertedPopup';
 
 class OpenGroup extends React.Component{
     constructor(props){
@@ -18,8 +20,13 @@ class OpenGroup extends React.Component{
             signedInId: localStorage.getItem("signedinID"),
             groupName: localStorage.getItem("groupName"),
             balancePopupStatus: false,
+            convertPopupOpen: false,
+            convertedData: null,
+            baseCurrencyStr: null,
+            originalBalanceArr: null,
         }
     }
+
     notRun = true;
     componentDidMount(){
         if(this.notRun){
@@ -73,7 +80,21 @@ class OpenGroup extends React.Component{
                     groupMembersObj[index] = user;
                 })
                 localStorage.setItem("groupMembers", JSON.stringify(groupMembersObj));
-                this.setState({groupMembers: responseJ.UsersArr});
+                this.setState({groupMembers: responseJ.UsersArr}, () => {
+
+                    // for how much money members owe specific person dropdown 
+                    this.state.groupMembers.forEach((member) => {
+                        const membersinput = document.getElementById("membersSelect");
+                        const newInput = document.createElement('option');
+                        if(member === this.state.signedIn){
+                            newInput.innerHTML = 'you';
+                        } else {
+                            newInput.innerHTML = member;
+                        }
+                        newInput.value = member;
+                        membersinput.append(newInput);
+                    })
+                });
 
                 // for display settings 
                 this.setState({payedByShown: responseJ.UsersArr});
@@ -176,6 +197,12 @@ class OpenGroup extends React.Component{
                     this.setState({currenciesListArr: currenciesArr}, () => {                        
                         const newCurrencyShown = this.state.currencyShown.filter((el) => this.state.currenciesListArr.includes(el));
                         this.setState({currencyShown: newCurrencyShown});
+
+                        // for how much individuals owe specific member
+                        const individualOwingsSelect = document.getElementById('membersSelect');
+                        if (individualOwingsSelect.value !== ''){
+                            this.displayIndividualOwings(individualOwingsSelect.value);
+                        }
                     });
                 });
 
@@ -183,7 +210,7 @@ class OpenGroup extends React.Component{
                 this.setState({expensesListArr: newExpensesListArr});
 
                 const newExpenseShown = this.state.expenseShown.filter((el) => el !== deletedExpenseName);
-                this.setState({expenseShown: newExpenseShown});                
+                this.setState({expenseShown: newExpenseShown});
             })
 
     }
@@ -206,303 +233,197 @@ class OpenGroup extends React.Component{
         this.setState({balancePopupStatus: stat});
     }
 
+
+    getUserForIndividualOwings = (e) => {
+        this.displayIndividualOwings(e.target.value);
+    }
+
+    convertToCurrency = (e) => {
+        let currenciesToConvertString = '';
+        let originalBalances = [];
+        const allCurrencyOwings = document.querySelectorAll( `.owingTotalPerCurrencyOf-${e.target.id}`);
+        allCurrencyOwings.forEach((currency) => {
+            let originalBalance = [];
+            if (currency.hasAttribute('id')){
+                originalBalance.push(currency.id.split('&'));
+                originalBalances.push(originalBalance);
+                if(currenciesToConvertString === ''){
+                    currenciesToConvertString = currency.id.split('&')[1];
+                } else {
+                    currenciesToConvertString = `${currenciesToConvertString},${currency.id.split('&')[1]}`;
+                }
+            }
+        })
+        const baseCurrency = document.getElementById(`convertDropdown-${e.target.id}`).value;
+        const baseCurrencyName = document.getElementById(`convertDropdown-${e.target.id}-${baseCurrency}`).textContent.split(' ').join('#');
+        this.fetchApi(baseCurrency, currenciesToConvertString, originalBalances, baseCurrencyName);
+    }
+
+    fetchApi = async (baseCurrency, currenciesToConvert, originals, baseName) => {
+        const response = await fetch(`https://api.freecurrencyapi.com/v1/latest?apikey=a7XUjX4tfqeUJUCW0qQDMV8FTCiuGf3ohXxu2Scm&base_currency=${baseCurrency}&currencies=${currenciesToConvert}`);
+        const jsonedResponse = await response.json();
+        this.setState({convertedData: jsonedResponse}, () => {
+            this.setState({baseCurrencyStr: baseName}, () => {
+                this.setState({originalBalanceArr: originals}, () => {
+                    this.setState({convertPopupOpen: true});
+                })
+            })
+        })
+    }
+
+    // for closing convert popup 
+    closePopup = (status) => {
+        this.setState({convertPopupOpen: status});
+        if (status === false){
+            this.setState({convertedData: null}); 
+            this.setState({baseCurrencyStr: null});
+            this.setState({originalBalanceArr: null});
+        }
+    }
+
+    displayIndividualOwings = (currentUser) => {
+        const container = document.getElementById('allMembersOwings');
+        container.replaceChildren();
+        this.state.groupMembers.forEach((member) => {
+            if(member !== currentUser){
+                const newMemberDiv = document.createElement('div');
+                const newMemberDivName = document.createElement('h4');
+                newMemberDivName.className = 'eachMemberOwesName'
+                newMemberDivName.innerHTML = member;
+                newMemberDiv.append(newMemberDivName);
+
+                // for conversion api 
+                const convertButton = document.createElement('button');
+                convertButton.innerHTML = 'convert all possible balances (in green) to...'
+                convertButton.id = member;
+                convertButton.className = 'convertAllPossibleBalancesBtns';
+                convertButton.addEventListener ('click', this.convertToCurrency);
+                const dropdown = document.createElement('select');
+                dropdown.id = `convertDropdown-${member}`;
+                dropdown.className = 'convertAllPossibleBalancesDropdowns'
+                ValidCurrencies.forEach((cur) => {
+                    const newOption = document.createElement('option');
+                    newOption.value = cur.code;
+                    newOption.id = `convertDropdown-${member}-${cur.code}`;
+                    newOption.innerHTML = cur.name;
+                    dropdown.append(newOption);
+                })
+
+                const buttonDiv = document.createElement('div');
+                buttonDiv.append(convertButton);
+                buttonDiv.append(dropdown);
+
+                this.state.currenciesListArr.forEach((currency) => {
+                    let amountMoney = 0;
+                    let valid = false;
+                    let code; 
+                    let validName;
+                    this.state.groupExpensesSummary.forEach((exp, index, array) => {
+                        if(exp.currency === currency){
+                            // get expenses where creator is current group member
+                            if(exp.buyer === currentUser){
+                                if(exp.receiver === member){
+                                    amountMoney = amountMoney - exp.amount_to_give;
+                                }
+                            // get expense when creator is not current group member
+                            } else { 
+                                if(exp.receiver === currentUser && exp.buyer === member){
+                                    amountMoney = amountMoney + exp.amount_to_give;
+                                }
+                            }
+                        }
+
+                        
+                        if(index === array.length - 1){
+                            const currencyType = document.createElement('p');
+                            (amountMoney !== 1 && amountMoney !== -1) ? currencyType.innerHTML = `${currency}s` : currencyType.innerHTML = currency;
+                            currencyType.style = 'display: inline'
+                            const amountDue = document.createElement('p');
+                            amountDue.innerHTML = amountMoney * -1;
+                            amountDue.style = 'display: inline; margin-Right: 10px';
+                            const owingTotalPerCurrency = document.createElement('div');
+                            owingTotalPerCurrency.className = `owingTotalPerCurrencyOf-${member}`;
+
+                            // check if ValidCurrencies
+                            ValidCurrencies.forEach((cur) => {
+                                if (cur.name === currency){
+                                    code = cur.code;
+                                    validName = cur.name.split(' ').join('#');
+                                    valid = true;  
+                                }
+                            })
+
+                            if (valid) {
+                                owingTotalPerCurrency.style = 'background-color: rgb(182, 255, 133); padding: 5px; border-radius: 15px; margin-bottom: 5px; color:rgb(89, 141, 82);';
+                                owingTotalPerCurrency.id = `${amountMoney}&${code}&${validName}`
+                            } else {
+                                owingTotalPerCurrency.style = 'background-color: rgb(242, 71, 68); padding: 5px; border-radius: 15px; margin-bottom: 5px; color:rgb(129, 34, 34);';
+                            }
+                            owingTotalPerCurrency.append(amountDue);
+                            owingTotalPerCurrency.append(currencyType);
+                            newMemberDiv.append(owingTotalPerCurrency);
+                            container.append(newMemberDiv);
+                        }
+                    })     
+                });
+                if(this.state.groupExpensesSummary.length !== 0){
+                    container.append(buttonDiv);
+                } else {
+                    container.innerHTML = 'no expenses added';
+                    container.style = '  color: rgb(163, 169, 173);  background-color: rgb(234, 234, 234); border-radius: 15px; padding: 10px 5px 10px 5px;  font-size: 22px; margin-bottom: 15px;';
+                }
+            }
+        })
+    }
+
     render(){
         const checkSignedIn = () => {
             if (this.state.signedIn != null && this.state.groupName != null) {
                 return (
                     <div>
-                        <h3>Group: {this.state.groupName && this.state.groupName}</h3>
+                        <div className="openGroupTitleDiv">
+                            <h3 className='openGroupTitle'>Group:</h3>
+                            <h4 className='openGroupTitleName'>{this.state.groupName}</h4>
+                        </div>
+
                         <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                             <div>
-                                <h3>Groups Members: </h3>
-                                <ul>{this.state.groupMembers && this.state.groupMembers.map((member) => {
-                                    return (<li key={member}>{member}</li>)
+                                <h3 className='openGroupSubtitles'>Groups Members: </h3>
+                                <ul id='openGroupMembersList'>{this.state.groupMembers && this.state.groupMembers.map((member) => {
+                                    return (<li key={member} id='openGroupMembersListItem'>{member}</li>)
                                 })
                                 }</ul>
                             </div>
-                            <div style={{display: 'flex', justifyContent: 'center', alignItems: 'flex-start'}}>
-                                <div style={{marginRight: '30px'}}>
-                                    <h3>Overview</h3>
-                                    <table style={{border: "1px solid black"}}> 
-                                        <tbody>
-                                            <tr style={{border: "1px solid black"}}>
-                                                <th style={{border: "1px solid black"}} rowSpan='2'>Member</th>
-                                                <th style={{border: "1px solid black"}} colSpan="2">Current Balance</th>
-                                            </tr>
-                                            <tr style={{border: "1px solid black"}}>
-                                                <th style={{border: "1px solid black"}}>Balance <HelpOutlineRoundedIcon style={{fontSize: '20px'}} onClick={() => {this.setState({balancePopupStatus: true})}}/></th>
-                                                <th style={{border: "1px solid black"}}>Currency</th>
-                                            </tr>
-                                            {
-                                    
-                                                this.state.groupMembers && this.state.groupMembers.map((member) => {
-                                                    return(
-                                                        <React.Fragment key={`groupMembers:${member}`}>
-                                                        {
-                                                            this.state.currenciesListArr && this.state.currenciesListArr.map((currency, index, arr) => {
-                                                                let amountPerCurrency = 0; 
-                                                                this.state.groupExpensesSummary && this.state.groupExpensesSummary.map((expense) => {
-                                                                    if(expense.currency === currency && expense.receiver === member){
-                                                                        amountPerCurrency = amountPerCurrency - expense.amount_to_give + expense.amount_to_recieve;
-                                                                    }
-                                                                    return(<></>)
-                                                                });
+                            <div>
+                                <h3 className='openGroupSubtitles'>Each Member owes <select id="membersSelect" name="membersSelect" defaultValue="" onChange={this.getUserForIndividualOwings}> <option disabled hidden value="">Select Member</option></select> the amount of...</h3>
+                                <div id='allMembersOwings' style={{marginBottom: '20px'}}>
 
-                                                                if(index === 0){
-                                                                    return( 
-                                                                        <tr style={{border: "1px solid black"}} key={`${member}-${currency}-${index}`}>
-                                                                            <td style={{border: "1px solid black"}} rowSpan={arr.length}>{member}</td>
-                                                                            <td style={{border: "1px solid black"}}>{amountPerCurrency}</td>
-                                                                            <td style={{border: "1px solid black"}}>{this.state.currenciesListArr[index]}</td>
-                                                                        </tr>
-                                                                    )
-                                                                } else {
-                                                                    return (
-                                                                        <tr style={{border: "1px solid black"}} key={`${member}-${currency}-${index}`}>
-                                                                            <td style={{border: "1px solid black"}}>{amountPerCurrency}</td>
-                                                                            <td style={{border: "1px solid black"}}>{this.state.currenciesListArr[index]}</td>
-                                                                        </tr>
-                                                                    )
-                                                                }
-                                                            })
-                                                        }
-                                                        {
-                                                            (!this.state.currenciesListArr || this.state.currenciesListArr.length === 0) && this.state.groupMembers.map((user, i) => {
-                                                                if(user === member){
-                                                                    return(
-                                                                        <tr style={{border: "1px solid black"}} key={`${user}${i}`}>
-                                                                            <td style={{border: "1px solid black"}}>{member}</td>
-                                                                            <td style={{border: "1px solid black"}}> - </td>
-                                                                            <td style={{border: "1px solid black"}}> - </td>
-                                                                        </tr>
-                                                                    )
-                                                                } else {
-                                                                    return(<React.Fragment key={`${user}.${i}`}></React.Fragment>)
-                                                                }
-                                                                
-                                                            })
-                                                        }
-                                                        </React.Fragment>
-                                                    )
-                                                })
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <div style={{marginLeft: '30px'}}>
-                                    <h3>Individual Balances</h3>
-                                    <table style={{border: "1px solid black"}}> 
-                                        <tbody>
-                                            <tr style={{border: "1px solid black"}}>
-                                                <th style={{border: "1px solid black"}} rowSpan='3'>Member</th>
-                                                <th style={{border: "1px solid black"}} colSpan="3">Other Members</th>
-                                            </tr> 
-                                            <tr style={{border: "1px solid black"}}>
-                                                <th style={{border: "1px solid black"}} rowSpan='2'>Member</th>
-                                                <th style={{border: "1px solid black"}} colSpan='2'>Current Balance</th>
-                                            </tr>
-                                            <tr style={{border: "1px solid black"}}>
-                                                <th style={{border: "1px solid black"}}>Balance <HelpOutlineRoundedIcon style={{fontSize: '20px'}} onClick={() => {this.setState({balancePopupStatus: true})}}/></th>
-                                                <th style={{border: "1px solid black"}}>Currency</th>
-                                            </tr>
-
-                                            {
-                                                this.state.groupMembers && this.state.groupMembers.map((member, index, arr) => {
-                                                    const otherGroupMembers = arr.filter((el) => el !== member);
-                                                    return(
-                                                    <React.Fragment key={`mainMember:${member}`}>
-                                                    {
-                                                        otherGroupMembers && otherGroupMembers.map((otherUser, ind, array) => {
-                                                            if(ind === 0){
-                                                                return(
-                                                                    <React.Fragment key={`otherGroupMembers:${otherUser}`}>
-                                                                    {
-                                                                        this.state.currenciesListArr && this.state.currenciesListArr.map((currency, inde, arra) => {
-                                                                            let amountMoney = 0;
-                                                                            if(inde === 0){
-                                                                                return(
-                                                                                    <React.Fragment key={`otherUser:${currency}-${otherUser}`}>
-                                                                                    {
-                                                                                        this.state.groupExpensesSummary && this.state.groupExpensesSummary.map((exp, indexx, arrayy) => {
-                                                                                            if(exp.currency === currency){
-                                                                                                // get expenses where creator is current group member
-                                                                                                if(exp.buyer === member){
-                                                                                                    if(exp.receiver === otherUser){
-                                                                                                        amountMoney = amountMoney - exp.amount_to_give;
-                                                                                                    }
-                                                                                                // get expense when creator is not current group member
-                                                                                                } else { 
-                                                                                                    if(exp.receiver === member && exp.buyer === otherUser){
-                                                                                                        amountMoney = amountMoney + exp.amount_to_give;
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-
-                                                                                            if(indexx === arrayy.length - 1){
-                                                                                                return (
-                                                                                                    <tr style={{border: "1px solid black"}} key={`totalBalance:${member}-${currency}-${otherUser}-${amountMoney}`}>
-                                                                                                        <th style={{border: "1px solid black"}} rowSpan={(arr.length-1)*(arra.length)}>{member}</th>
-                                                                                                        <td style={{border: "1px solid black"}} rowSpan={arra.length}>{otherUser}</td>
-                                                                                                        <td style={{border: "1px solid black"}}>{amountMoney}</td>
-                                                                                                        <td style={{border: "1px solid black"}}>{currency}</td>
-                                                                                                    </tr>
-                                                                                                )
-                                                                                            }
-                                                                                        return(<></>)
-                                                                                        })
-                                                                                    }
-                                                                                    </React.Fragment>
-                                                                                    
-                                                                                )
-                                                                            } else {
-                                                                                return (
-                                                                                    <React.Fragment key={`otherUser:${currency}-${otherUser}`}>
-                                                                                    {
-                                                                                        this.state.groupExpensesSummary && this.state.groupExpensesSummary.map((exp, indexx, arrayy) => {
-                                                                                            if(exp.currency === currency){
-                                                                                                // get expenses where creator is current group member
-                                                                                                if(exp.buyer === member){
-                                                                                                    if(exp.receiver === otherUser){
-                                                                                                        amountMoney = amountMoney - exp.amount_to_give;
-                                                                                                    }
-                                                                                                // get expense when creator is not current group member
-                                                                                                } else { 
-                                                                                                    if(exp.receiver === member && exp.buyer === otherUser){
-                                                                                                        amountMoney = amountMoney + exp.amount_to_give;
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-
-                                                                                            if(indexx === arrayy.length - 1){
-                                                                                                return (
-                                                                                                    <tr style={{border: "1px solid black"}} key={`totalBalance:${member}-${currency}-${otherUser}-${amountMoney}`}>
-                                                                                                        <td style={{border: "1px solid black"}}>{amountMoney}</td>
-                                                                                                        <td style={{border: "1px solid black"}}>{currency}</td>
-                                                                                                    </tr>
-                                                                                                )
-                                                                                            }
-                                                                                            return(<></>)
-                                                                                        })
-                                                                                    }
-                                                                                    </React.Fragment> 
-                                                                                )
-                                                                            }
-                                                                        })
-                                                                    }
-                                                                    
-                                                                    </React.Fragment>
-                                                                )
-                                                            } else {
-                                                                return(
-                                                                    <React.Fragment key={`otherGroupMembers:${otherUser}`}>
-                                                                    {
-                                                                        this.state.currenciesListArr && this.state.currenciesListArr.map((currency, inde, arra) => {
-                                                                            let amountMoney = 0;
-                                                                            if(inde === 0){
-                                                                                return(
-                                                                                    <React.Fragment key={`otherUser:${currency}-${otherUser}-${inde}`}>
-                                                                                    {
-                                                                                        this.state.groupExpensesSummary && this.state.groupExpensesSummary.map((exp, indexx, arrayy) => {
-                                                                                            if(exp.currency === currency){
-                                                                                                // get expenses where creator is current group member
-                                                                                                if(exp.buyer === member){
-                                                                                                    if(exp.receiver === otherUser){
-                                                                                                        amountMoney = amountMoney - exp.amount_to_give;
-                                                                                                    }
-                                                                                                // get expense when creator is not current group member
-                                                                                                } else { 
-                                                                                                    if(exp.receiver === member && exp.buyer === otherUser){
-                                                                                                        amountMoney = amountMoney + exp.amount_to_give;
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                            
-                                                                                            if(indexx === arrayy.length - 1){
-                                                                                                return (
-                                                                                                    <tr style={{border: "1px solid black"}} key={`totalBalance:${member}-${currency}-${otherUser}-${amountMoney}`}>
-                                                                                                        <td style={{border: "1px solid black"}} rowSpan={arra.length}>{otherUser}</td>
-                                                                                                        <td style={{border: "1px solid black"}}>{amountMoney}</td>
-                                                                                                        <td style={{border: "1px solid black"}}>{currency}</td>
-                                                                                                    </tr>
-                                                                                                )
-                                                                                            }
-                                                                                            return(<></>)
-                                                                                        })
-                                                                                    }
-                                                                                    </React.Fragment>
-                                                                                    
-                                                                                )
-                                                                            } else {
-                                                                                return (
-                                                                                    <React.Fragment key={`otherUser:${currency}-${otherUser}-${inde}`}>
-                                                                                    {
-                                                                                        this.state.groupExpensesSummary && this.state.groupExpensesSummary.map((exp, indexx, arrayy) => {
-                                                                                            if(exp.currency === currency){
-                                                                                                // get expenses where creator is current group member
-                                                                                                if(exp.buyer === member){
-                                                                                                    if(exp.receiver === otherUser){
-                                                                                                        amountMoney = amountMoney - exp.amount_to_give;
-                                                                                                    }
-                                                                                                // get expense when creator is not current group member
-                                                                                                } else { 
-                                                                                                    if(exp.receiver === member && exp.buyer === otherUser){
-                                                                                                        amountMoney = amountMoney + exp.amount_to_give;
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                            
-                                                                                            if(indexx === arrayy.length - 1){
-                                                                                                return (
-                                                                                                    <tr style={{border: "1px solid black"}} key={`totalBalance:${member}-${currency}-${otherUser}-${amountMoney}`}>
-                                                                                                        <td style={{border: "1px solid black"}}>{amountMoney}</td>
-                                                                                                        <td style={{border: "1px solid black"}}>{currency}</td>
-                                                                                                    </tr>
-                                                                                                )
-                                                                                            }
-                                                                                            return(<></>)
-                                                                                        })
-                                                                                    }
-                                                                                    </React.Fragment>
-                                                                                    
-                                                                                )
-                                                                            }
-                                                                        })
-                                                                    }
-                                                                    </React.Fragment> 
-                                                                )
-                                                            }
-                                                        })
-                                                    }
-                                                    </React.Fragment>
-                                                    )
-                                                    
-                                                })
-                                            }
-                                        </tbody>
-                                    </table>
                                 </div>
                             </div>
+                            <div> 
+                            { (this.state.groupMembers && this.state.currenciesListArr && this.state.groupExpensesSummary)? < ExpensesSummaryDropdown groupMembers={this.state.groupMembers} currenciesListArr = {this.state.currenciesListArr} groupExpensesSummary={this.state.groupExpensesSummary} changePopup={this.changePopup}/> : <></>}
+                            </div>
+
                             <div>
-                                <h3>List of Expenses</h3>
+                                <h3 className='openGroupSubtitles'>List of Expenses</h3>
                                 <div style={{display: 'flex', flexDirection: 'column',  width: '800px'}}>
-                                    <h4>Filters</h4>
+                                    <h4 className='openGroupSmallerSubtitles'>Filters</h4>
                                     { this.state.expensesListArr? < ExpensesDropdown ExpensesArr={this.state.expensesListArr} updateExpenseDisplayed={this.updateExpenseDisplayed}/> : ''}
                                     { this.state.groupMembers? < PayedByDropdown groupNamesArr={this.state.groupMembers} updatePayedByDisplayed={this.updatePayedByDisplayed}/> : ''}
                                     { this.state.currenciesListArr? < CurrencyDropdown currenciesArr={this.state.currenciesListArr} updateCurrencyDisplayed={this.updateCurrencyDisplayed}/> : ''}
                                     { this.state.groupMembers? < MembersInvolvedDropdown groupNamesArr={this.state.groupMembers} updateLoaneeDisplayed={this.updateLoaneeDisplayed}/> : ''}
                                 </div>
-                                <div>
-                                    <h4>Expenses</h4>
-                                    <table style={{border: "1px solid black", marginBottom: '20px',  width: '800px'}}> 
+                                <div className='centerColumnContent'>
+                                    <h4 className='openGroupSmallerSubtitles'>Expenses</h4>
+                                    <table id='expensesTable'> 
                                         <tbody>
-                                            <tr style={{border: "1px solid black"}}>
-                                                <th style={{border: "1px solid black", padding: '3px'}} >Expense</th>
-                                                <th style={{border: "1px solid black", padding: '3px'}}>Payed by</th>
-                                                <th style={{border: "1px solid black", padding: '3px'}}>Amount</th>
-                                                <th style={{border: "1px solid black", padding: '3px'}}>Currency</th>
-                                                <th style={{border: "1px solid black", padding: '3px'}}>Loanees</th>
-                                                <th style={{border: "1px solid black", padding: '3px'}}>Delete Expense</th>
+                                            <tr>
+                                                <th className='expensesTableTitles'>Expense</th>
+                                                <th className='expensesTableTitles'>Payed by</th>
+                                                <th className='expensesTableTitles'>Amount</th>
+                                                <th className='expensesTableTitles'>Currency</th>
+                                                <th className='expensesTableTitles'>Loanees</th>
+                                                <th className='expensesTableTitles'>Delete Expense</th>
                                             </tr>
                                             {
                                                 this.state.groupExpensesObjectArr && this.state.groupExpensesObjectArr.map((expense) => {
@@ -516,16 +437,16 @@ class OpenGroup extends React.Component{
                                                                     loaneeInIncluded = true;
                                                                 }
                                                             }
-                                                            return(<></>)
+                                                            return(<React.Fragment key={`${expense[1].currency}-${expense[0]}-${expense[1].buyer}`}></React.Fragment>)
                                                         })
                                                         if(loaneeInIncluded){
                                                             return (
-                                                                <tr style={{border: "1px solid black"}} key={expense[0]}>
-                                                                    <td style={{border: "1px solid black", padding: '3px'}}>{expense[0]}</td> 
-                                                                    <td style={{border: "1px solid black", padding: '3px'}}>{expense[1].buyer}</td>
-                                                                    <td style={{border: "1px solid black", padding: '3px'}}>{expense[1].amount}</td>
-                                                                    <td style={{border: "1px solid black", padding: '3px'}}>{expense[1].currency}</td>
-                                                                    <td style={{border: "1px solid black", padding: '3px'}}>{expense[1].involved.map((member, index, arr) => {
+                                                                <tr key={expense[0]}>
+                                                                    <td className='expensesTableInputs'>{expense[0]}</td> 
+                                                                    <td className='expensesTableInputs'>{expense[1].buyer}</td>
+                                                                    <td className='expensesTableInputs'>{expense[1].amount}</td>
+                                                                    <td className='expensesTableInputs'>{expense[1].currency}</td>
+                                                                    <td className='expensesTableInputs'>{expense[1].involved.map((member, index, arr) => {
                                                                         return(`${!expense[1].buyerInvolved && expense[1].buyer === member?
                                                                             '' :
                                                                             `${!expense[1].buyerInvolved?
@@ -549,23 +470,23 @@ class OpenGroup extends React.Component{
                                                                             }`
                                                                         }`) 
                                                                     })}</td>
-                                                                    <td style={{border: "1px solid black", padding: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                                                        <button id={expense[0]} onClick={this.partialDeleteExpense} className={`delete-btn-elements-${expense[0]}`}><div className='navBarIcons' id={expense[0]}>< DeleteOutlineOutlinedIcon id={expense[0]}/> delete</div></button>
-                                                                        <button id={`confirm-${expense[0]}`} style={{display: 'none'}} onClick={this.deleteExpense} className={`confirm-btn-elements-${expense[0]}`}><div className='navBarIcons' id={`confirm-${expense[0]}`}>< CheckCircleOutlineOutlinedIcon id={`confirm-${expense[0]}`}/> Confirm</div></button>
-                                                                        <button id={`cancel-${expense[0]}`} style={{display: 'none'}} onClick={this.cancelDelete} className={`cancel-btn-elements-${expense[0]}`}><div className='navBarIcons' id={`cancel-${expense[0]}`}>< CancelOutlinedIcon id={`cancel-${expense[0]}`}/> Cancel</div></button>
+                                                                    <td className='expensesTableInputs' style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                                                        <button id={expense[0]} onClick={this.partialDeleteExpense} className={`delete-btn-elements-${expense[0]} editExpenseTableBtns`}><div className='navBarIcons' id={expense[0]}>< DeleteOutlineOutlinedIcon className = 'importedLogos' /> delete</div></button>
+                                                                        <button id={`confirm-${expense[0]}`} style={{display: 'none'}} onClick={this.deleteExpense} className={`confirm-btn-elements-${expense[0]} editExpenseTableBtns`}><div className='navBarIcons' id={`confirm-${expense[0]}`}>< CheckCircleOutlineOutlinedIcon className = 'importedLogos'/> Confirm</div></button>
+                                                                        <button id={`cancel-${expense[0]}`} style={{display: 'none'}} onClick={this.cancelDelete} className={`cancel-btn-elements-${expense[0]} editExpenseTableBtns`}><div className='navBarIcons' id={`cancel-${expense[0]}`}>< CancelOutlinedIcon className = 'importedLogos'/> Cancel</div></button>
                                                                     </td>
                                                                 </tr>
                                                             )
                                                         }
                                                     }
-                                                    return(<></>)
+                                                 return(<React.Fragment key={`overall--${expense[1].currency}-${expense[0]}-${expense[1].buyer}`}></React.Fragment>)
                                                 })
                                             }
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-                            <button onClick={this.addExpense} style={{marginBottom: '10px'}}className="iconBtn">< PlaylistAddOutlinedIcon style={{marginRight: '4px'}}/> add expense</button>
+                            <button onClick={this.addExpense} style={{marginBottom: '10px'}}className="iconBtn" id='addNewExpenseBtn'>< PlaylistAddOutlinedIcon style={{marginRight: '4px'}} className = 'importedLogos'/> add expense</button>
                         </div>
                     </div>
                 );
@@ -587,9 +508,10 @@ class OpenGroup extends React.Component{
         }
 
         return(
-            <div>
+            <div style={{minHeight: '800px'}}>
                {checkSignedIn()}
                < BalanceBackdrop changePopup={this.changePopup} balancePopupStatus={this.state.balancePopupStatus}/>
+               { (this.state.convertedData !== null && this.state.baseCurrencyStr !== null && this.state.originalBalanceArr !== null) && < ConvertedPopup isOpen = {this.state.convertPopupOpen} changeOpen={this.closePopup} dataToDisplay={this.state.convertedData} base={this.state.baseCurrencyStr} original={this.state.originalBalanceArr}/> }
             </div>
         )
     }

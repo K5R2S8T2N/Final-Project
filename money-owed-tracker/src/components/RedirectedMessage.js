@@ -1,6 +1,5 @@
 import * as React from 'react';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 
@@ -12,7 +11,7 @@ export default function RedirectedMessage(props) {
   const isOpen = props.isOpen;
   const changeIsOpen = props.changeIsOpen;
 
-  const [state, setState] = React.useState({
+  const [state] = React.useState({
     vertical: 'top',
     horizontal: 'left',
   });

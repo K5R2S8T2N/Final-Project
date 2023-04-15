@@ -16,8 +16,8 @@ class Groups extends React.Component{
             redirectReason: localStorage.getItem("redirectMessage"),
         }
     }
+    
     notRun = true;
-
     componentDidMount(){
         if(this.notRun){
             this.checkGroups();
@@ -26,9 +26,9 @@ class Groups extends React.Component{
             if(this.state.redirectReason !== null){
                 this.setState({redirectMessage: true});
             }
-        }
-        
+        }  
     }
+
     checkGroups = async () => {
         this.notRun = false;
         const response = await fetch('http://localhost:3000/loadGroups', {
@@ -151,17 +151,20 @@ class Groups extends React.Component{
         const checkSignedIn = () => {
             if (this.state.signedIn != null) {
                 return (
-                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                        <h3>Groups</h3>
+                    <div id='mainGroupsPageDiv'>
+                        <h3 id='groupsPageTitle'>Groups</h3>
                         <div id="groupsList">{
                             this.state.groupsList && this.state.groupsList.map( (group, index) => {
                                 return  (
                                     <div className='groups' key={`${group[0]}-${group[1]}`}>
-                                        <div>
-                                            <p> group name: {group[0]}</p>
-                                            <p> made by: {group[1]}</p>
-                                            <div style={{display: 'flex', alignItems: 'center'}}>
-                                                <p style={{display: 'inline', marginRight: '6px'}}> status: {group[2]}</p>
+                                        <div className='groupsText'>
+                                            <h3 className='groupSubtitle'> group name </h3>
+                                            <p className='groupSubtext'> {group[0]}</p>
+                                            <h3 className='groupSubtitle'> made by </h3>
+                                            <p className='groupSubtext'> {group[1]}</p>
+                                            <h3 className='groupSubtitle'> status</h3>
+                                            <div style={{display: 'flex', alignItems: 'center'}} className='groupSubtext'>
+                                                <p style={{marginRight: '6px'}}>{group[2]}</p>
                                                 {/* adding icon for status */}
                                                 {
                                                   group[2] === 'invalid'? 
@@ -175,15 +178,15 @@ class Groups extends React.Component{
                                         </div>
                                         <button className='groupOpenBtn' onClick={this.openGroup} id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`}>
                                             {group[2] === 'invalid' ?
-                                                <div className='navBarIcons' id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`}><DeleteOutlineOutlinedIcon style={{fontSize: '24px'}} id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`}/> Delete </div>:
-                                                <div className='navBarIcons' id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`}><FolderOpenIcon style={{fontSize: '18px'}} id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`}/> Open </div>
+                                                <div className='navBarIcons' id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`}><DeleteOutlineOutlinedIcon style={{fontSize: '30px'}} className = 'importedLogos'/> Delete </div>:
+                                                <div className='navBarIcons' id={`openBtn-${group[0]}-${group[1]}-${group[2]}-${this.state.signedIn}`}><FolderOpenIcon style={{fontSize: '24px'}} className = 'importedLogos'/> Open </div>
                                             }
                                         </button>
                                     </div>
                                 )
                             })
                         }</div>
-                        <button className="labelWithIcon" style={{marginBottom: '16px'} }onClick={() => {window.location.href = '/create'}}>< CreateNewFolderIcon style={{marginRight: '2px', marginBottom: '2px', fontSize: '22px'}}/> New Group</button>
+                        <button className="labelWithIcon" id='newGroupBtn' style={{marginBottom: '16px'} }onClick={() => {window.location.href = '/create'}}>< CreateNewFolderIcon style={{marginRight: '2px', marginBottom: '2px', fontSize: '22px'}} className = 'importedLogos'/> New Group</button>
                     </div>
                     
                 );
@@ -198,7 +201,7 @@ class Groups extends React.Component{
         }
 
         return(
-            <div>
+            <div style={{minHeight: '800px'}}>
                {checkSignedIn()}
                < RedirectedMessage isOpen = {this.state.redirectMessage} changeIsOpen = {this.changeIsOpenMessage} message = {this.state.redirectReason}/>
             </div>

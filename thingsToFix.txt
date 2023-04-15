@@ -1,13 +1,2 @@
-pages to create:
-not logged in...
-- register 
-- login 
-- home 
-- groups 
-- create
-- requests 
-
-- add all groups dropdown in navbar
-- add amount slider for expenses display
-- add how much signed in owes per currency
-- style successful sign in message before redirecting 
+- not logged in home 
+- navbar backgroun 100vw - if screen made shorter 

@@ -94,40 +94,42 @@ class AddExpense extends React.Component{
         const checkSignedIn = () => {
             if (this.state.signedIn != null && this.state.groupName != null) {
                 return (
-                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                        <h3>Add Expense</h3>
-                        <SelectExpense
-                            inputDisabled={this.state.everythingDisabled}
-                            inputFilled={this.changeExpenseStatus}
-                            inputValue={this.changeExpense}
-                            expenseMessage={this.state.expenseHelperText}
-                            error={this.state.expenseError}
-                            changeErrorStatus={this.changeExpenseError}
-                            changeExpenseMessage={this.changeExpenseHelperText}
+                    <div className="centerColumnContent">
+                        <h3 className="creatingPagesTitle">Add Expense</h3>
+                        <div className="centerColumnContent" id='addExpenseInputsDiv'>
+                            <SelectExpense
+                                inputDisabled={this.state.everythingDisabled}
+                                inputFilled={this.changeExpenseStatus}
+                                inputValue={this.changeExpense}
+                                expenseMessage={this.state.expenseHelperText}
+                                error={this.state.expenseError}
+                                changeErrorStatus={this.changeExpenseError}
+                                changeExpenseMessage={this.changeExpenseHelperText}
 
-                        />
-                        <div style={{display: 'flex'} }>
-                            < SelectAmount inputDisabled={this.state.everythingDisabled} inputFilled={this.changeAmountStatus} inputValue={this.changeAmount}/>
-                            < SelectCurrency inputDisabled={this.state.everythingDisabled} inputFilled={this.changeCurrencyStatus} inputValue={this.changeCurrency}/>
+                            />
+                            <div style={{display: 'flex'} }>
+                                < SelectAmount inputDisabled={this.state.everythingDisabled} inputFilled={this.changeAmountStatus} inputValue={this.changeAmount}/>
+                                < SelectCurrency inputDisabled={this.state.everythingDisabled} inputFilled={this.changeCurrencyStatus} inputValue={this.changeCurrency}/>
+                            </div>
+                            <div style={{display: 'flex', justifyContent: 'center'}}>
+                                < SelectMembersInvolved groupNamesArr={Object.values(JSON.parse(this.state.groupMembers))} inputDisabled={this.state.everythingDisabled} inputFilled={this.changeInvolvedStatus} inputValue={this.changeInvolved}/>
+                                < SelectPurchaseMadeBy signedIn={this.state.signedIn} groupNamesArr={Object.values(JSON.parse(this.state.groupMembers))} inputDisabled={this.state.everythingDisabled} inputValue={this.changeBuyer}/>
+                            </div>
+                            <ConfirmExpense
+                                allFilled={this.state.expensesFilled && this.state.amountFilled && this.state.currencyFilled && this.state.involvedFilled}
+                                changeDisabled={this.changeEverythingDisabled}
+                                expense={this.state.expense}
+                                amount={this.state.amount}
+                                currency={this.state.currency}
+                                involved={this.state.involved}
+                                buyer={this.state.buyer}
+                                groupName={this.state.groupName}
+                                groupCreator={this.state.groupCreator}
+                                expenseMessage={this.changeExpenseHelperText}
+                                expenseError={this.changeExpenseError}
+                            />
                         </div>
-                        <div style={{display: 'flex', justifyContent: 'center'}}>
-                            < SelectMembersInvolved groupNamesArr={Object.values(JSON.parse(this.state.groupMembers))} inputDisabled={this.state.everythingDisabled} inputFilled={this.changeInvolvedStatus} inputValue={this.changeInvolved}/>
-                            < SelectPurchaseMadeBy signedIn={this.state.signedIn} groupNamesArr={Object.values(JSON.parse(this.state.groupMembers))} inputDisabled={this.state.everythingDisabled} inputValue={this.changeBuyer}/>
-                        </div>
-                        <ConfirmExpense
-                            allFilled={this.state.expensesFilled && this.state.amountFilled && this.state.currencyFilled && this.state.involvedFilled}
-                            changeDisabled={this.changeEverythingDisabled}
-                            expense={this.state.expense}
-                            amount={this.state.amount}
-                            currency={this.state.currency}
-                            involved={this.state.involved}
-                            buyer={this.state.buyer}
-                            groupName={this.state.groupName}
-                            groupCreator={this.state.groupCreator}
-                            expenseMessage={this.changeExpenseHelperText}
-                            expenseError={this.changeExpenseError}
-                        />
-                        <button onClick={this.backToGroup} disabled={this.state.everythingDisabled} className="navBarIcons" style={{marginBottom: '20px'}}>< ExitToAppOutlinedIcon style={{fontSize: '24px'}}/> Back To Group</button>
+                        <button onClick={this.backToGroup} disabled={this.state.everythingDisabled} className="navBarIcons" id='AddExpenseBackToGroupBtn'style={{marginBottom: '20px'}}>< ExitToAppOutlinedIcon style={{fontSize: '24px'}} className = 'importedLogos'/> Back To Group</button>
                     </div>
                 );
             } else if (this.state.signedIn != null && this.state.groupName == null) {
@@ -148,7 +150,7 @@ class AddExpense extends React.Component{
         }
 
         return(
-            <div>
+            <div style={{minHeight: '800px'}}>
                {checkSignedIn()}
             </div>
         )

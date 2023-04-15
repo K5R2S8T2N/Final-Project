@@ -83,6 +83,7 @@ class Requests extends React.Component{
         });
         const responseJ = await response.json();
         requestMessage.innerHTML = `group "${responseJ[0].group_name}" ${responseJ[0].status}`;
+        localStorage.setItem("navBarRerender", true);
         this.checkRequests();
     }
 
@@ -90,22 +91,24 @@ class Requests extends React.Component{
         const checkSignedIn = () => {
             if (this.state.signedIn != null) {
                 return (
-                    <div>
-                        <h3>Requests Page</h3>
+                    <div id='mainRequestsPageDiv'>
+                        <h3 id='requestPageTitle'>Requests Page</h3>
                         <p id="requestMessage"></p>
                         <div id="requestsList">{
                             this.state.groupRequests && this.state.groupRequests.map( (request, index) => {
                                 return  (
                                     <div className='requests' key={`${request[0]}-${request[1]}`}>
-                                        <div>
-                                            <p> group name: {request[0]}</p>
-                                            <p> made by: {request[1]}</p>
+                                        <div className='requestsText'>
+                                            <h3 className='requestSubtitle'> group name</h3>
+                                            <p className='requestSubtext'>{request[0]}</p>
+                                            <h3 className='requestSubtitle'> made by </h3>
+                                            <p className='requestSubtext'>{request[1]}</p>
                                             <GroupRequestsMembersPopper information={`otherusers-${index}`} requestsInfo={this.state.groupRequests}/>
                                         </div>
                                         
                                         <div id='requestsButtonsDiv' style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}> 
-                                            <button id={`accepted-${request[0]}-${request[1]}`} onClick={this.respondRequest} className="navBarIcons" style={{marginBottom: '10px'}}><ThumbUpAltTwoToneIcon style={{fontSize: '18px'}}/>accept</button>
-                                            <button id={`declined-${request[0]}-${request[1]}`} onClick={this.respondRequest} className="navBarIcons" style={{marginTop: '10px'}}><ThumbDownAltTwoToneIcon style={{fontSize: '18px'}}/>decline</button>  
+                                            <button id={`accepted-${request[0]}-${request[1]}`} onClick={this.respondRequest} className="navBarIcons requestsRespondBtn" style={{marginBottom: '10px'}}><ThumbUpAltTwoToneIcon style={{fontSize: '18px'}} className = 'importedLogos'/>accept</button>
+                                            <button id={`declined-${request[0]}-${request[1]}`} onClick={this.respondRequest} className="navBarIcons requestsRespondBtn" style={{marginTop: '10px'}}><ThumbDownAltTwoToneIcon style={{fontSize: '18px'}} className = 'importedLogos'/>decline</button>  
                                         </div>
                                     </div>
                                 )
@@ -125,7 +128,7 @@ class Requests extends React.Component{
         }
 
         return(
-            <div>
+            <div style={{minHeight: '800px'}}>
                {checkSignedIn()}
             </div>
         )

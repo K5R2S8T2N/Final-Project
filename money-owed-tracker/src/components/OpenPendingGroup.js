@@ -66,12 +66,16 @@ class OpenPendingGroup extends React.Component{
             if (this.state.signedIn != null && this.state.groupName != null) {
                 return (
                     <div>
-                        <h3>Group: {this.state.groupName}</h3>
+                        <div className="openGroupTitleDiv">
+                            <h3 className='openGroupTitle'>Group:</h3>
+                            <h4 className='openGroupTitleName'>{this.state.groupName}</h4>
+                        </div>
+                        
                         <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                            <p>This group is still pending. Waiting on the following users to respond to group request:</p>
-                            <ul style={{listStyleType: 'circle'}}>{ this.state.pendingUsers && this.state.pendingUsers.map(user => {
+                            <p id='stillPendingMessage'>This group is still pending. Waiting on the following users to respond to group request:</p>
+                            <ul id='stillPendingUsersList'>{ this.state.pendingUsers && this.state.pendingUsers.map(user => {
                                 return (
-                                    <li style={{textAlign: 'left'}} key={user}>{user}</li>
+                                    <li id='stillPendingListItem' key={user}>{user}</li>
                                 )
                             })
                             }</ul>
@@ -94,7 +98,7 @@ class OpenPendingGroup extends React.Component{
         }
 
         return(
-            <div>
+            <div style={{minHeight: '800px'}}>
                {checkSignedIn()}
             </div>
         )
