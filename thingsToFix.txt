@@ -1,2 +1,0 @@
-- not logged in home 
-- navbar backgroun 100vw - if screen made shorter 
