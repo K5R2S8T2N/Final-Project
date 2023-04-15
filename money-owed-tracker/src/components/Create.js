@@ -1,5 +1,5 @@
 import React from "react";
-import BackToHomePage from "./BackToHomePage";
+import BackToPageBtn from "./BackToPageBtn";
 import SaveIcon from '@mui/icons-material/Save';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
@@ -81,6 +81,7 @@ class Create extends React.Component{
         }
         this.checkDetailsFilledForCreate();
         createMessage.innerHTML = '';
+        createMessage.style = 'background-color: none;';
     }
 
     spacesMessage = (e) => {
@@ -90,6 +91,7 @@ class Create extends React.Component{
         const count = newUser.length;
         message.innerHTML = `${count}/50`;
         createMessage.innerHTML = '';
+        createMessage.style = 'background-color: none;';
 
         if(e.key === 'Enter'){
             e.preventDefault();
@@ -121,6 +123,7 @@ class Create extends React.Component{
         }
         this.checkDetailsFilledForCreate();
         createMessage.innerHTML = '';
+        createMessage.style = 'background-color: none;';
     }
 
     changeGroupName = (e) => {
@@ -131,7 +134,6 @@ class Create extends React.Component{
         message.innerHTML = '';
         backToGroupsBtn.style.display = 'none';
         if(e.key === 'Enter'){
-            message.innerHTML = 'teds';
             e.preventDefault();
             if(e.target.value.length > 50){
                 message.innerHTML = 'group name too long';
@@ -153,6 +155,7 @@ class Create extends React.Component{
                 .then((data) => {
                     if(data.submission === "successful"){
                         groupName.innerHTML = data.name;
+                        groupName.style = 'background: rgb(249, 249, 249); margin-bottom: 10px; padding: 10px 20px 10px 20px;';
                         e.target.value = "";
                     } else {
                         message.innerHTML = data.message;
@@ -162,6 +165,7 @@ class Create extends React.Component{
                 .catch((err) => console.log(err))
                 message.innerHTML = '';
                 createMessage.innerHTML = '';
+                createMessage.style = 'background-color: none;';
             } 
             this.checkDetailsFilledForCreate();
         }
@@ -173,6 +177,7 @@ class Create extends React.Component{
         const createMessage = document.getElementById('createMessage');
         message.innerHTML = '';
         createMessage.innerHTML = '';
+        createMessage.style = 'background-color: none;';
         if ( e.target.id === localStorage.getItem("signedin")){
             message.innerHTML = 'you cannot delete yourself from the group';
             
@@ -200,7 +205,8 @@ class Create extends React.Component{
         }
     }
 
-    createGroup = () => {
+    createGroup = (e) => {
+        e.target.disabled = true
         const newMembers = this.state.members;
         const groupName = document.getElementById('newGroupName');
         const message = document.getElementById('createMessage');
@@ -226,8 +232,10 @@ class Create extends React.Component{
         })
         .then((data) => {
             message.innerHTML = data.message;
+            message.style = 'background-color: #cad2e3;';
             this.setState({members: [`${localStorage.getItem("signedin")}`]});
             groupName.innerHTML = ' ';
+            groupName.style = 'background: none; margin: 0px; padding: 0px';
             addingMemberInput.value ='';
             groupNameInput.value = '';
             newGroupMembersMessage.innerHTML = '';
@@ -241,48 +249,49 @@ class Create extends React.Component{
         const checkSignedIn = () => {
             if (this.state.signedIn != null) {
                 return (
-                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                        <h1>Create New Group</h1>
+                    <div className="centerColumnContent">
+                        <h1 className='creatingPagesTitle'>Create New Group</h1>
 
-                        <div>
-                            <h3>Group Members</h3>
-                            <div id="newGroupMembersList">{
+                        <div className="centerColumnContent">
+                            <h3 className='groupInputTitle' id='groupMembersTitle'>Group Members</h3>
+                            <div id="newGroupMembersList" >{
                                 this.state.members && this.state.members.map( (user) => {
                                     return  (
                                         <div key={user} className='newGroupMembers'>
                                             <p>{user}</p>
-                                            <button id={user} onClick={this.deleteUser} className='iconBtn'>< PersonRemoveIcon style={{marginRight: '8px'}}/> delete</button>
+                                            <button id={user} onClick={this.deleteUser} className='iconBtn CreateDeleteUser'>< PersonRemoveIcon style={{marginRight: '8px'}} className = 'importedLogos'/> delete</button>
                                         </div>
                                     )
                                 })
                             }</div>
                             <form>
                                 <div>
-                                    <label className='labelWithIcon'>< PersonAddAlt1Icon style={{marginRight: '8px'}}/> add member</label>
+                                    <label className='labelWithIcon createInputLabels'>< PersonAddAlt1Icon style={{marginRight: '8px'}} className = 'importedLogos'/> add member</label>
                                     <input type='text' id='addingMemberInput' name='member' onKeyDown={this.addingMember} onKeyUp={this.spacesMessage}></input>
                                     <p id='newGroupMembersMessage'></p>
                                 </div>
                             </form>
                         </div>
 
-                        <div >
-                            <h3>Group Name</h3>
+                        <div className="centerColumnContent">
+                            <h3 className='groupInputTitle' id='groupNameTitle'>Group Name</h3>
                             <h4 id='newGroupName'> </h4>
                             <form>
-                            <label className='labelWithIcon'><DriveFileRenameOutlineRoundedIcon style={{marginRight: '8px'}}/> change group name</label>
+                            <label className='labelWithIcon createInputLabels'><DriveFileRenameOutlineRoundedIcon style={{marginRight: '8px'}} className = 'importedLogos'/> change group name</label>
                                 <input type='text' id='groupName' name='group name' onKeyUp={this.otherSpacesMessage} onKeyDown={this.changeGroupName}></input>
                                 <p id='newGroupNameMessage'></p>
                             </form>
                         </div>
 
-                        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                            <button name='create' id='createGroup' onClick={this.createGroup}><SaveIcon /> Create Group</button>
+                        <div className="centerColumnContent">
+                            <button name='create' id='createGroup' onClick={this.createGroup}><SaveIcon className = 'importedLogos'/> Create Group</button>
                             <p id="createMessage"></p>
-                            <button name='backToGroups' id='backToGroups' onClick={() => {window.location.href = '/groups'}} className='navBarIcons' style={{marginBottom: '20px', display: 'none'}}>< ExitToAppIcon style={{fontSize: '24px'}}/>Back to Groups</button>
+                            <button name='backToGroups' id='backToGroups' onClick={() => {window.location.href = '/groups'}} className='navBarIcons' style={{marginBottom: '20px', display: 'none'}}>< ExitToAppIcon style={{fontSize: '24px'}} className = 'importedLogos'/>Back to Groups</button>
                         </div>
                         
-                        <div style={{display: 'flex', alignItems: 'center'}}>
-                            <BackToHomePage />
+                        <div id='backBtnsDivCreate'>
+                            <BackToPageBtn location={'/groups'} message={'Back To Groups'} pageRedirectedTo={'Groups Page'}/>
+                            <BackToPageBtn location={'/'} message={'Back To Home Page'} pageRedirectedTo={'Home Page'}/>
                         </div>
                        
                     </div>
@@ -299,7 +308,7 @@ class Create extends React.Component{
         }
 
         return(
-            <div>
+            <div style={{minHeight: '800px'}}>
                {checkSignedIn()}
             </div>
         )

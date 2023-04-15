@@ -15,7 +15,7 @@ import AddExpense from './components/AddExpense';
 function App() {
 
   return (
-    <div className="App" style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100vh', width: '100vw'}}>
+    <div className="App mainPage" style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between'}}>
       <div>
         <NavBar />
         <Routes>

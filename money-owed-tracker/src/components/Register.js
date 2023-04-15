@@ -38,7 +38,7 @@ class Register extends React.Component{
         const passCount = password.value.length;
         const usernameCount = document.getElementById('usernameCount');
         const passwordCount = document.getElementById('passwordCount');
-        if (userCount > 0 && passCount > 0 && username.value !=' ' && password.value !=' ' && userCount <= 50 && passCount <= 50){
+        if (userCount > 0 && passCount > 0 && username.value !== ' ' && password.value !== ' ' && userCount <= 50 && passCount <= 50){
             register.disabled = false;
             usernameCount.innerHTML = '';
             passwordCount.innerHTML = '';
@@ -60,7 +60,7 @@ class Register extends React.Component{
         if(e.key === 'Enter'){
             e.preventDefault();
         }
-        if(e.keyCode == 32){
+        if(e.keyCode === 32){
             message.innerHTML = `${e.target.name} cannot contain spaces`;
             e.target.value = e.target.value.split(' ').join('');
         }
@@ -116,10 +116,10 @@ class Register extends React.Component{
         const passCount = document.getElementById('registerPassword').value.length;
         const usernameCount = document.getElementById('usernameCount');
         const passwordCount = document.getElementById('passwordCount');
-        if (0>= userCount <= 50 ){
+        if (userCount <= 50 && userCount >= 0){
             usernameCount.innerHTML = '';
         }
-        if (0>= passCount <= 50 ){
+        if (passCount <= 50 && passCount >= 0){
             passwordCount.innerHTML = '';
         }
         // for removing back to home message + register icon if registering more than one person 
@@ -136,6 +136,7 @@ class Register extends React.Component{
         localStorage.removeItem("groupCreator");
         localStorage.removeItem("groupStatus");
         localStorage.removeItem("groupMembers");
+        localStorage.removeItem("navBarRerender");
         this.setState({signedIn: localStorage.getItem("signedin")});
         window.location.href = '/register';
     }
@@ -145,11 +146,11 @@ class Register extends React.Component{
             if (this.state.signedIn === null) {
                 return (
                 <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                    <PersonAddAlt1Icon style={{fontSize: '110px', background: 'black', borderRadius: '12px', padding: '10px 10px 0 10px', color: 'white'}}/>
-                    <h1>Registration</h1>
+                    <PersonAddAlt1Icon id='registerMainIcon'/>
+                    <h1 id="registerTitle">Registration</h1>
                     <form onInput={this.checkFilled} onSubmit={this.register} >
                         <div>
-                            <div className="labelWithIcon" style={{margin: '10px'}}>
+                            <div className="labelWithIcon userPassLabels" style={{margin: '10px'}}>
                                 < PersonIcon style={{marginRight: '4px', fontSize: '20px'}}/>
                                 <label>Username</label>
                             </div>
@@ -157,16 +158,16 @@ class Register extends React.Component{
                             <p id="usernameCount"></p>
                         </div>
                         <div>
-                            <div className="labelWithIcon" style={{margin: '10px'}}>
+                            <div className="labelWithIcon userPassLabels" style={{margin: '10px'}}>
                                 < LockIcon style={{marginRight: '4px', fontSize: '16px'}}/>
                                 <label>Password</label>
                             </div>
                             <div style={{display: 'flex', justifyContent: 'center'}}>
                                 <input type='password' id='registerPassword' onKeyUp= {this.spacesMessage} onKeyDown={this.prevent} name='password' style={{marginRight: '8px'}}></input>
-                                <button onClick = {this.passwordVisiblilty}>
+                                <button onClick = {this.passwordVisiblilty} className ='visibilitybtn'>
                                     {this.state.passwordHidden?
-                                        <div className="labelWithIcon">< VisibilityOffIcon style={{marginRight: '4px', fontSize: '16px'}}/>hidden</div>:
-                                        <div className="labelWithIcon">< VisibilityIcon style={{marginRight: '4px', fontSize: '16px'}}/>visible</div>
+                                        <div className="labelWithIcon visibleOff">< VisibilityOffIcon style={{marginRight: '4px', fontSize: '16px'}} className = 'importedLogos'/>hidden</div>:
+                                        <div className="labelWithIcon visibleOn">< VisibilityIcon style={{marginRight: '4px', fontSize: '16px'}} className = 'importedLogos'/>visible</div>
                                     }
                                 </button>
                             </div>
@@ -175,18 +176,18 @@ class Register extends React.Component{
                         <input name='register' type='submit' id='registerSubmit' value='Register' disabled onSubmit={this.register}/>
                     </form>
                     <div className="labelWithIcon">
-                        <HowToRegIcon id="successfulRegisterIcon" style={{marginRight: '8px', display: 'none'}}/>
+                        <HowToRegIcon id="successfulRegisterIcon" style={{marginRight: '8px', display: 'none', color: '8b92a1'}}/>
                         <p id="registerMessage"></p>
                     </div>
                     
-                    <button id='registerBackToHomeBtn' onClick={() => {window.location.href = '/groups'}} className='iconBtn' style={{marginBottom: '20px', display: 'none'}}><ArrowBackIosNewIcon sx={{marginRight: '4px', marginLeft: '0px',fontSize: 'medium'}}/>Back To Home</button>
+                    <button id='registerBackToHomeBtn' onClick={() => {window.location.href = '/groups'}} className='iconBtn' style={{marginBottom: '20px', display: 'none'}}><ArrowBackIosNewIcon sx={{marginRight: '4px', marginLeft: '0px',fontSize: 'medium'}} className = 'importedLogos'/>Back To Home</button>
                 </div>
                 );
             } else {
                 return (
                     <div>
-                        <p>Already signed in. Logout to register</p>
-                        <button onClick={this.logout}>logout</button>
+                        <p className='alreadySignedInMessage'>Already signed in. Logout to register</p>
+                        <button onClick={this.logout} className='areadySignedInBtn'>logout</button>
                     </div>
                     
                 );
@@ -194,7 +195,7 @@ class Register extends React.Component{
         }
 
         return(
-            <div className="App">
+            <div className="loginRegisterPages">
                {checkSignedIn()}
             </div>
             

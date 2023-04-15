@@ -467,4 +467,6 @@ app.post('/deleteExpense', (req, res) => {
 //     res.json(data);
 // })
 
+app.get('/', (req, res) => { res.send('testing server side')})
+
 app.listen(process.env.PORT, () => console.log(`listening on port ${process.env.PORT}`));
