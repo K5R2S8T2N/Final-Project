@@ -14,6 +14,7 @@ const db = require('knex')({
         password: process.env.DB_PASS,
         database: process.env.DB_NAME,
         port: process.env.DB_PORT,
+        ssl: { rejectUnauthorized: false }
     }
 });
 app.set("db", db);
